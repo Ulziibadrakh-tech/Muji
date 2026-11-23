@@ -58,7 +58,7 @@ export function displayCount(stage, u) {
 }
 
 function nodeBox(stage, u, w, measure) {
-  const lines = wrap(u.title, w - M.padX * 2, M.titleSize, measure, 2);
+  const lines = wrap(u.title, w - M.padX * 2 - 10, M.titleSize, measure, 2);
   const kicker = u.kicker && u.level !== "item" ? u.kicker : (u.kind === "out" || u.kind === "sub" ? u.kicker : null);
   const count = displayCount(stage, u);
   const h = M.padTop + (kicker ? M.kicker : 0) + lines.length * M.line + 6 + (count === null && !u.badge ? 0 : M.count) + M.padBottom - (count === null && !u.badge ? 6 : 0);
@@ -168,31 +168,34 @@ export function layout(stage, { mode = "tree", width = 360, measure = estimateWi
   return { nodes, links, width: W, height: y };
 }
 
-// Static SVG markup (used for the Word report image and the comparison thumbnails).
-export function staticSVG(stage, lay, c, { scale = 1, fonts = { sans: "Golos Text", serif: "Cormorant Garamond" }, pad = 24 } = {}) {
+// Static SVG markup (used for the Word report image).
+export function staticSVG(stage, lay, c, { scale = 1, fonts = { sans: "Golos Text" }, pad = 24 } = {}) {
   const W = lay.width + pad * 2, H = lay.height + pad * 2;
-  const rule = k => ({ lead: c.cherry, cocoa: c.cocoa, petrol: c.petrol, support: c.lineStrong, gov: c.ink, sub: c.lineStrong }[k] || c.lineStrong);
+  const fill = k => ({ lead: c.black, cocoa: c.butter, petrol: c.sky, gov: c.surface3, out: "none" }[k] || c.surface);
+  const ink = k => ({ lead: c.onBlack, cocoa: c.butterInk, petrol: c.skyInk }[k] || c.ink);
+  const sub = k => ({ lead: c.onBlackMuted, cocoa: c.butterInk, petrol: c.skyInk }[k] || c.muted);
+  const dot = k => ({ lead: c.cherryOnDark, cocoa: c.butterInk, petrol: c.skyInk, sub: c.ink, gov: c.ink }[k] || c.lineStrong);
   const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
-  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W * scale}" height="${H * scale}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${c.paper}"/><g transform="translate(${pad} ${pad})">`;
-  for (const l of lay.links) s += `<path d="${l.d}" fill="none" stroke="${c.lineStrong}" stroke-width="1"${l.dashed ? ' stroke-dasharray="4 3"' : ""}/>`;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W * scale}" height="${H * scale}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" rx="20" fill="${c.surface2}"/><g transform="translate(${pad} ${pad})">`;
+  for (const l of lay.links) s += `<path d="${l.d}" fill="none" stroke="${c.lineStrong}" stroke-width="1.5" stroke-linecap="round"${l.dashed ? ' stroke-dasharray="4 4"' : ""}/>`;
   for (const n of lay.nodes) {
-    const out = n.kind === "out";
-    s += `<g transform="translate(${n.x} ${n.y})">`;
-    s += `<rect x="0.5" y="0.5" width="${n.w - 1}" height="${n.h - 1}" rx="2" fill="${out ? c.paper : c.raised}" stroke="${out ? c.lineStrong : c.line}"${out ? ' stroke-dasharray="4 3"' : ""}/>`;
-    if (!out) s += `<rect x="0" y="0" width="${n.w}" height="3" rx="1" fill="${rule(n.kind)}"/>`;
+    const k = n.kind, out = k === "out";
+    const stroke = out ? ` stroke="${c.lineStrong}" stroke-dasharray="5 4" stroke-width="1.5"` : k === "sub" ? ` stroke="${c.ink}" stroke-width="1.5"` : (k === "support" ? ` stroke="${c.line}"` : "");
+    s += `<g transform="translate(${n.x} ${n.y})"><rect x="0.5" y="0.5" width="${n.w - 1}" height="${n.h - 1}" rx="14" fill="${fill(k)}"${stroke}/>`;
+    if (!out) s += `<circle cx="${n.w - 15}" cy="15" r="4" fill="${dot(k)}"/>`;
     let ty = M.padTop;
-    if (n.kicker) { ty += 10; s += `<text x="${M.padX}" y="${ty}" font-family="${fonts.sans}" font-size="${M.kickerSize}" font-weight="600" letter-spacing="1" fill="${c.muted}">${esc(n.kicker.toUpperCase())}</text>`; ty += 6; }
-    for (const line of n.lines) { ty += M.line - 4; s += `<text x="${M.padX}" y="${ty}" font-family="${fonts.sans}" font-size="${M.titleSize}" font-weight="600" fill="${out ? c.muted : c.ink}">${esc(line)}</text>`; ty += 4; }
+    if (n.kicker) { ty += 10; s += `<text x="${M.padX}" y="${ty}" font-family="${fonts.sans}" font-size="${M.kickerSize}" font-weight="400" fill="${sub(k)}">${esc(n.kicker)}</text>`; ty += 6; }
+    for (const line of n.lines) { ty += M.line - 4; s += `<text x="${M.padX}" y="${ty}" font-family="${fonts.sans}" font-size="${M.titleSize}" font-weight="600" fill="${out ? c.muted : ink(k)}">${esc(line)}</text>`; ty += 4; }
     if (n.count !== null) {
       ty += 6 + 20;
-      s += `<text x="${M.padX}" y="${ty}" font-family="${fonts.sans}" font-size="${M.countSize}" font-weight="600" fill="${n.kind === "lead" ? c.cherry : c.ink}">${n.count}<tspan font-size="11" font-weight="400" fill="${c.muted}" dx="3">хүн</tspan></text>`;
+      s += `<text x="${M.padX}" y="${ty}" font-family="${fonts.sans}" font-size="22" font-weight="600" fill="${ink(k)}">${n.count}<tspan font-size="11" font-weight="400" fill="${sub(k)}" dx="4">хүн</tspan></text>`;
     }
-    if (n.badge) {
-      const t = BADGE_TEXT[n.badge].toUpperCase();
-      const bw = estimateWidth(t, 9.5) + 14;
-      const bg = { new: c.cherrySoft, changed: c.amberSoft, reduced: c.sunk, out: c.paper }[n.badge];
-      const fg = { new: c.cherry, changed: c.amber, reduced: c.muted, out: c.muted }[n.badge];
-      s += `<rect x="${n.w - M.padX - bw}" y="${n.h - M.padBottom - 17}" width="${bw}" height="17" rx="3" fill="${bg}"${n.badge === "out" ? ` stroke="${c.lineStrong}"` : ""}/><text x="${n.w - M.padX - bw / 2}" y="${n.h - M.padBottom - 5}" text-anchor="middle" font-family="${fonts.sans}" font-size="9.5" font-weight="600" letter-spacing="0.8" fill="${fg}">${esc(t)}</text>`;
+    if (n.badge && BADGE_TEXT[n.badge]) {
+      const t = BADGE_TEXT[n.badge];
+      const bw = estimateWidth(t, 9.5) + 16;
+      const bg = { new: c.cherry, changed: c.amberSoft, reduced: c.surface2, out: c.surface2 }[n.badge];
+      const fg = { new: "#ffffff", changed: c.amber, reduced: c.muted, out: c.muted }[n.badge];
+      s += `<rect x="${n.w - M.padX - bw + 4}" y="${n.h - M.padBottom - 18}" width="${bw}" height="18" rx="9" fill="${bg}"/><text x="${n.w - M.padX - bw / 2 + 4}" y="${n.h - M.padBottom - 5.5}" text-anchor="middle" font-family="${fonts.sans}" font-size="9.5" font-weight="600" fill="${fg}">${esc(t)}</text>`;
     }
     s += `</g>`;
   }
@@ -200,5 +203,5 @@ export function staticSVG(stage, lay, c, { scale = 1, fonts = { sans: "Golos Tex
 }
 
 export const PALETTE = {
-  light: { paper: "#faf6f0", raised: "#fffdf9", sunk: "#f2ebe1", ink: "#2a1a17", muted: "#6e5c55", line: "#e4d9cc", lineStrong: "#957f70", cherry: "#a01630", cherryStrong: "#741226", cherrySoft: "#f7e3e5", onCherry: "#fff8f2", cocoa: "#6b4231", cocoaSoft: "#efe4dc", petrol: "#2f5d6b", petrolSoft: "#e2ecee", amber: "#8a5414", amberSoft: "#f6ead8" },
+  light: { surface: "#ffffff", surface2: "#f4f5f7", surface3: "#e4e7eb", ink: "#0e0e10", muted: "#63676e", line: "#e3e5e9", lineStrong: "#a3a8b0", black: "#0e0e10", onBlack: "#f5f5f7", onBlackMuted: "#a4a8af", cherry: "#b3122e", cherryOnDark: "#ff5a6a", butter: "#f4e5a1", butterInk: "#4a3d00", sky: "#cfdcf0", skyInk: "#1d3a63", amber: "#8a5414", amberSoft: "#f6ead8" },
 };

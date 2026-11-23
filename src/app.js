@@ -35,30 +35,92 @@ function renderStatic() {
   $("#footText").textContent = `${m.task} · ${m.topic} · ${m.school} · ${m.status}`;
 }
 
-/* ── hero growth chart ───────────────────────────────────── */
-function renderGrowth() {
-  const svg = $("#growth");
-  const base = 262, maxH = 200, w = 96, gap = 28, x0 = 16;
-  const max = Math.max(...S.map(s => s.headcount));
-  svg.append(el("line", { class: "g-rule", x1: 0, x2: 520, y1: base - maxH * (30 / max), y2: base - maxH * (30 / max) }));
-  svg.append(el("line", { class: "g-rule", x1: 0, x2: 520, y1: base - maxH, y2: base - maxH }));
+/* ── hero bento: KPIs, gauges, net-need bars, centralisation arc ── */
+const ARROW = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+function renderHero() {
+  const last = S[S.length - 1];
+  const nets = S.map((s, i) => (i ? s.headcount - S[i - 1].headcount : s.headcount));
+  const maxNet = Math.max(...nets);
+  const kpis = [
+    { label: "Ажилчид, 2031", num: last.headcount, unit: "хүн", accent: true },
+    { label: "Үе шат", num: S.length, unit: "бүтэц" },
+    { label: "Хамгийн их өсөлт", num: "+" + maxNet, unit: S[nets.indexOf(maxNet)].years.slice(2, 4) + "–" + S[nets.indexOf(maxNet)].years.slice(-2) },
+    { label: "Удирдлагын түвшин", num: S[0].metrics.levels + "→" + last.metrics.levels, unit: "" },
+  ];
+  const hc = S.map(s => s.headcount), mx = Math.max(...hc);
+  const viz = [
+    // headcount step line
+    `<svg viewBox="0 0 200 56" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="var(--cherry)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" points="${hc.map((v, i) => `${i * 66.6},${52 - (v / mx) * 48}`).join(" ")}"/>${hc.map((v, i) => `<circle cx="${i * 66.6}" cy="${52 - (v / mx) * 48}" r="3.5" fill="var(--surface)" stroke="var(--cherry)" stroke-width="2" vector-effect="non-scaling-stroke"/>`).join("")}</svg>`,
+    // four stages as growing tiles
+    `<svg viewBox="0 0 200 56" aria-hidden="true">${S.map((s, i) => `<rect x="${i * 50}" y="${56 - 14 - i * 12}" width="42" height="${14 + i * 12}" rx="8" fill="${i === S.length - 1 ? "var(--ink)" : "var(--surface-3)"}"/>`).join("")}</svg>`,
+    // net-need mini bars
+    `<svg viewBox="0 0 200 56" aria-hidden="true">${nets.map((n, i) => `<rect x="${i * 50 + 6}" y="${56 - Math.max(4, (n / maxNet) * 56)}" width="30" height="${Math.max(4, (n / maxNet) * 56)}" rx="6" fill="${n === maxNet ? "var(--cherry)" : "var(--surface-3)"}"/>`).join("")}</svg>`,
+    // management layers 3 → 5
+    `<svg viewBox="0 0 200 56" aria-hidden="true">${[0, 1, 2].map(k => `<rect x="${30 - k * 10}" y="${k * 13 + 8}" width="${20 + k * 20}" height="7" rx="3.5" fill="var(--surface-3)"/>`).join("")}${[0, 1, 2, 3, 4].map(k => `<rect x="${150 - k * 9}" y="${k * 10 + 3}" width="${16 + k * 18}" height="6" rx="3" fill="var(--ink)"/>`).join("")}<path d="M88 30h22m-6-5 6 5-6 5" fill="none" stroke="var(--ink-muted)" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  ];
+  $("#kpis").innerHTML = kpis.map((k, i) => `<div class="card kpi${k.accent ? " kpi--accent" : ""}"><div class="kpi__top"><span>${esc(k.label)}</span><span class="kpi__icon">${ARROW}</span></div><div class="kpi__viz">${viz[i]}</div><div class="kpi__num">${k.num}${k.unit ? `<small>${esc(k.unit)}</small>` : ""}</div></div>`).join("");
+
+  // gauges: share of final headcount
+  const R = 40, C = 2 * Math.PI * R, sweep = 0.75; // 270° dial
+  const box = $("#gauges");
+  box.innerHTML = "";
   S.forEach((s, i) => {
-    const hgt = Math.max(10, (s.headcount / max) * maxH), x = x0 + i * (w + gap);
-    const g = el("g", { class: "g-bar", "data-i": i, tabindex: 0, role: "button", "aria-label": `Үе шат ${s.no}, ${s.years}: ${s.headcount} ажилтан, ${s.structure}` });
-    g.append(el("rect", { class: "g-hit", x: x - 8, y: 0, width: w + 16, height: 330 }));
-    const r = el("rect", { class: "g-slab" + (reduced ? "" : " g-grow"), x, y: base - hgt, width: w, height: hgt, rx: 2 });
-    r.style.animationDelay = `${150 + i * 140}ms`;
-    g.append(r);
-    const num = el("text", { class: "g-num", x, y: base - hgt - 12 }, reduced ? s.headcount : "0");
-    g.append(num);
-    g.append(el("text", { class: "g-yr", x, y: base + 26 }, s.years));
-    g.append(el("text", { class: "g-nm", x, y: base + 44 }, s.short));
-    g.addEventListener("click", () => goStage(i, true));
-    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goStage(i, true); } });
-    svg.append(g);
-    if (!reduced) countUp(num, 0, s.headcount, 900, 150 + i * 140);
+    const pct = Math.round((s.headcount / last.headcount) * 100);
+    const b = h("button", "gauge");
+    b.type = "button"; b.dataset.i = i;
+    b.setAttribute("aria-label", `Үе шат ${s.no}, ${s.years}: ${s.headcount} ажилтан — нээх`);
+    const ticks = Array.from({ length: 12 }, (_, k) => { const a = (135 + k * (270 / 11)) * Math.PI / 180; return `<line class="gauge__tick" x1="${50 + Math.cos(a) * 48}" y1="${50 + Math.sin(a) * 48}" x2="${50 + Math.cos(a) * 52}" y2="${50 + Math.sin(a) * 52}"/>`; }).join("");
+    b.innerHTML = `<span class="gauge__pct">${s.headcount}<small>хүн</small></span>
+      <svg viewBox="0 0 100 100" aria-hidden="true">${ticks}
+        <circle class="gauge__track" cx="50" cy="50" r="${R}" stroke-dasharray="${C * sweep} ${C}" transform="rotate(135 50 50)"/>
+        <circle class="gauge__fill" cx="50" cy="50" r="${R}" stroke-dasharray="${C * sweep} ${C}" stroke-dashoffset="${C * sweep}" transform="rotate(135 50 50)" data-off="${C * sweep * (1 - pct / 100)}"/>
+        <text x="50" y="56" text-anchor="middle" font-size="15" font-weight="600" fill="currentColor" font-family="inherit">${pct}%</text>
+      </svg>
+      <span class="gauge__yr">${s.years}</span><span class="gauge__name">${esc(s.short)}</span>`;
+    b.addEventListener("click", () => goStage(i, true));
+    box.append(b);
   });
-  svg.append(el("line", { class: "g-base", x1: 0, x2: 520, y1: base + 0.5, y2: base + 0.5 }));
+  requestAnimationFrame(() => setTimeout(() => box.querySelectorAll(".gauge__fill").forEach(c => (c.style.strokeDashoffset = c.dataset.off)), reduced ? 0 : 350));
+
+  // net-need bars
+  const svg = $("#bars");
+  const W = 300, base = 150, maxH = 112, bw = 46, gap = (W - bw * S.length) / (S.length - 1);
+  svg.innerHTML = "";
+  nets.forEach((n, i) => {
+    const x = i * (bw + gap), hgt = Math.max(6, (n / maxNet) * maxH);
+    svg.append(el("rect", { class: "b-ghost", x, y: base - maxH, width: bw, height: maxH, rx: 12 }));
+    const r = el("rect", { class: "b-bar" + (n === maxNet ? " hot" : "") + (reduced ? "" : " grow"), x, y: base - hgt, width: bw, height: hgt, rx: 12 });
+    r.style.animationDelay = `${300 + i * 110}ms`;
+    svg.append(r);
+    svg.append(el("text", { class: "b-val", x: x + bw / 2, y: base - hgt - 8, "text-anchor": "middle" }, (i ? "+" : "") + n));
+    svg.append(el("text", { class: "b-lbl", x: x + bw / 2, y: base + 18, "text-anchor": "middle" }, s_yr(S[i].years)));
+  });
+
+  // centralisation arc
+  drawArc(0);
+}
+const s_yr = y => "’" + y.slice(2, 4) + "–" + y.slice(-2);
+function drawArc(sel) {
+  const svg = $("#arc");
+  const cx = 120, cy = 118, r = 92;
+  const pt = t => [cx - r * Math.cos(Math.PI * t), cy - r * Math.sin(Math.PI * t)];
+  const len = Math.PI * r;
+  const v = S[sel].metrics.central; // 4..1
+  svg.innerHTML = "";
+  svg.append(el("path", { class: "a-track", d: `M${cx - r} ${cy} A${r} ${r} 0 0 1 ${cx + r} ${cy}` }));
+  const f = el("path", { class: "a-fill", d: `M${cx - r} ${cy} A${r} ${r} 0 0 1 ${cx + r} ${cy}`, "stroke-dasharray": `${len} ${len}`, "stroke-dashoffset": len });
+  svg.append(f);
+  requestAnimationFrame(() => (f.style.strokeDashoffset = len * (1 - v / 4)));
+  S.forEach((s, i) => {
+    const [x, y] = pt(s.metrics.central / 4);
+    const d = el("circle", { class: "a-dot" + (i === sel ? " on" : ""), cx: x, cy: y, r: i === sel ? 9 : 6, tabindex: 0, role: "button", "aria-label": `Үе шат ${s.no}: төвлөрөл ${CENTRAL[s.metrics.central].toLowerCase()}` });
+    d.addEventListener("click", () => drawArc(i));
+    d.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); drawArc(i); } });
+    svg.append(d);
+  });
+  svg.append(el("text", { class: "a-num", x: cx, y: cy - 22, "text-anchor": "middle" }, s_yr(S[sel].years)));
+  svg.append(el("text", { class: "a-cap", x: cx, y: cy - 2, "text-anchor": "middle" }, "Цэг дээр дарна"));
+  $("#arcLabel").innerHTML = `<b>${CENTRAL[v]}</b> — ${esc(S[sel].structure.toLowerCase())}`;
 }
 
 function countUp(node, from, to, dur = 600, delay = 0) {
@@ -78,9 +140,9 @@ function renderSteps() {
   const box = $("#steps");
   box.innerHTML = "";
   S.forEach((s, i) => {
-    const b = h("button", "sn-step");
+    const b = h("button", "step");
     b.type = "button"; b.setAttribute("role", "tab"); b.id = `tab-${i}`;
-    b.innerHTML = `<span class="sn-step__no">${s.no}</span><span class="sn-step__years">${s.years}</span><span class="sn-step__name">${esc(s.short)} · ${s.headcount}</span>`;
+    b.innerHTML = `<span class="step__no">${s.no}</span><span class="step__txt"><span class="step__yr">${s.years}</span><span class="step__nm">${esc(s.short)} · ${s.headcount}</span></span>`;
     b.addEventListener("click", () => goStage(i));
     box.append(b);
   });
@@ -98,47 +160,39 @@ function updateSteps() {
     const b = $(`#tab-${i}`);
     b.setAttribute("aria-selected", i === state.i ? "true" : "false");
     b.tabIndex = i === state.i ? 0 : -1;
-    b.classList.toggle("sn-step--past", i < state.i);
   });
 }
 
 function renderHead() {
   const s = S[state.i], p = S[state.i - 1];
-  const delta = p ? `<span class="sn-stat__delta"><b>${signed(s.headcount - p.headcount)}</b> өмнөх үеэс</span>` : `<span class="sn-stat__delta">Анхны баг</span>`;
+  const delta = p ? `<b>${signed(s.headcount - p.headcount)}</b> өмнөх үеэс` : "Анхны баг";
   $("#eraHead").innerHTML = `
-    <header class="sn-era">
-      <div class="sn-era__index" aria-hidden="true">${s.no}</div>
-      <div>
-        <p class="sn-era__kicker">Үе шат ${s.no} · ${s.years}</p>
-        <h2 class="sn-era__title" id="eraTitle">${esc(s.structure)}</h2>
-      </div>
-      <div class="sn-stat sn-stat--s">
-        <span class="sn-stat__label">Ажилчид</span>
-        <span class="sn-stat__value sn-stat__value--key" id="eraCount">${s.headcount}</span>
-        ${delta}
-      </div>
-    </header>`;
+    <div class="era__no" aria-hidden="true">${s.no}</div>
+    <div>
+      <p class="era__yr">Үе шат ${s.no} · ${s.years}</p>
+      <h2 class="era__title" id="eraTitle">${esc(s.structure)}</h2>
+    </div>
+    <div class="era__stat">
+      <div class="era__count" id="eraCount">${s.headcount}</div>
+      <div class="era__delta">ажилтан · ${delta}</div>
+    </div>`;
   if (p) countUp($("#eraCount"), p.headcount, s.headcount, 600);
 }
 
-function meter(v) { return `<span class="meter" aria-label="${CENTRAL[v]}">${[1, 2, 3, 4].map(k => `<i class="${k <= v ? "on" : ""}" style="height:${8 + k * 6}px"></i>`).join("")}</span>`; }
+function meter(v) { return `<span class="meter" aria-label="${CENTRAL[v]}">${[1, 2, 3, 4].map(k => `<i class="${k <= v ? "on" : ""}" style="height:${10 + k * 6}px"></i>`).join("")}</span>`; }
 
 function renderWhy() {
   const s = S[state.i];
   $("#why").innerHTML = `
-    <div>
-      <h3>Стратегийн зорилго</h3>
-      <p class="goal">${esc(s.goal)}</p>
-    </div>
-    <div>
-      <h3>Яагаад энэ бүтэц</h3>
-      <ol>${s.why.map(t => `<li>${esc(t)}</li>`).join("")}</ol>
-    </div>
-    <dl class="metrics">
-      <div><dt>Удирдлагын түвшин</dt><dd>${s.metrics.levels}</dd></div>
-      <div><dt>Захиралд шууд</dt><dd>${s.metrics.span}</dd></div>
-      <div><dt>Төвлөрөл: ${CENTRAL[s.metrics.central].toLowerCase()}</dt><dd>${meter(s.metrics.central)}</dd></div>
-    </dl>`;
+    <article class="card"><h3>Стратегийн зорилго</h3><p class="goal">${esc(s.goal)}</p></article>
+    <article class="card"><h3>Яагаад энэ бүтэц</h3><ol>${s.why.map(t => `<li>${esc(t)}</li>`).join("")}</ol></article>
+    <article class="card card--black">
+      <dl class="metrics">
+        <div><dt>Удирдлагын түвшин</dt><dd>${s.metrics.levels}</dd></div>
+        <div><dt>Захиралд шууд</dt><dd>${s.metrics.span}</dd></div>
+        <div><dt>Төвлөрөл: ${CENTRAL[s.metrics.central].toLowerCase()}</dt><dd>${meter(s.metrics.central)}</dd></div>
+      </dl>
+    </article>`;
 }
 
 function roleRows(s) {
@@ -161,19 +215,16 @@ function renderRoles() {
   let body = rows.map(({ u, r }) => {
     const num = first ? r.n : signed(r.d ?? 0);
     const cls = !first && (r.d ?? 0) < 0 ? " net-neg" : "";
-    return `<tr><td data-l="${head[0]}">${esc(r.t)}${badge(r.b)}<small>${esc(u.title)}${first ? "" : ` · ${r.n} орон тоо`}</small></td><td data-l="${head[1]}">${li(r.duty)}</td><td data-l="${head[2]}">${li(r.skill)}</td><td class="sn-num${cls}" data-l="${head[3]}">${num}</td></tr>`;
+    return `<tr><td data-l="${head[0]}">${esc(r.t)}${badge(r.b)}<small>${esc(u.title)}${first ? "" : ` · ${r.n} орон тоо`}</small></td><td data-l="${head[1]}">${li(r.duty)}</td><td data-l="${head[2]}">${li(r.skill)}</td><td class="num${cls}" data-l="${head[3]}">${num}</td></tr>`;
   }).join("");
-  body += (s.removed || []).map(r => `<tr><td data-l="${head[0]}">${esc(r.t)}<span class="sn-badge sn-badge--reduced">Хасагдсан</span></td><td data-l="${head[1]}">${esc(r.note)}</td><td data-l="${head[2]}">—</td><td class="sn-num net-neg" data-l="${head[3]}">${signed(r.d)}</td></tr>`).join("");
+  body += (s.removed || []).map(r => `<tr><td data-l="${head[0]}">${esc(r.t)}<span class="sn-badge sn-badge--reduced">Хасагдсан</span></td><td data-l="${head[1]}">${esc(r.note)}</td><td data-l="${head[2]}">—</td><td class="num net-neg" data-l="${head[3]}">${signed(r.d)}</td></tr>`).join("");
   const prev = S[state.i - 1];
-  const foot = first
-    ? `<tr><td colspan="3">Нийт орон тоо</td><td class="sn-num">${s.headcount}</td></tr>`
-    : `<tr><td colspan="3">Нийт цэвэр хэрэгцээ · ${prev.headcount} → ${s.headcount}</td><td class="sn-num">${signed(s.headcount - prev.headcount)}</td></tr>`;
+  const total = first ? `Нийт орон тоо<b>${s.headcount}</b>` : `Цэвэр хэрэгцээ ${prev.headcount} → ${s.headcount}<b>${signed(s.headcount - prev.headcount)}</b>`;
   $("#roles").innerHTML = `
-    <h3>${first ? "Албан тушаал ба орон тоо" : "Өөрчлөгдсөн, нэмэгдсэн албан тушаалууд"}</h3>
-    <table class="sn-table">
-      <thead><tr><th style="width:24%">${head[0]}</th><th>${head[1]}</th><th>${head[2]}</th><th class="sn-num">${head[3]}</th></tr></thead>
+    <div class="roles__head"><h3>${first ? "Албан тушаал ба орон тоо" : "Өөрчлөгдсөн, нэмэгдсэн албан тушаалууд"}</h3><span class="roles__total">${total}</span></div>
+    <table class="tbl">
+      <thead><tr><th style="width:26%">${head[0]}</th><th>${head[1]}</th><th>${head[2]}</th><th class="num">${head[3]}</th></tr></thead>
       <tbody>${body}</tbody>
-      <tfoot>${foot}</tfoot>
     </table>`;
 }
 
@@ -183,23 +234,23 @@ const nodeEls = new Map();
 function buildNode(g, n) {
   g.replaceChildren();
   g.dataset.kind = n.kind;
-  g.append(el("rect", { class: "o-box", x: 0.5, y: 0.5, width: n.w - 1, height: n.h - 1, rx: 2 }));
-  g.append(el("rect", { class: "o-rule", x: 0, y: 0, width: n.w, height: 3, rx: 1 }));
+  g.append(el("rect", { class: "o-box", x: 0.5, y: 0.5, width: n.w - 1, height: n.h - 1, rx: 14 }));
+  if (n.kind !== "out") g.append(el("circle", { class: "o-dot", cx: n.w - 15, cy: 15, r: 4 }));
   let ty = M.padTop;
-  if (n.kicker) { ty += 10; g.append(el("text", { class: "o-kicker", x: M.padX, y: ty }, n.kicker.toUpperCase())); ty += 6; }
+  if (n.kicker) { ty += 10; g.append(el("text", { class: "o-kicker", x: M.padX, y: ty }, n.kicker)); ty += 6; }
   for (const line of n.lines) { ty += M.line - 4; g.append(el("text", { class: "o-title", x: M.padX, y: ty }, line)); ty += 4; }
   if (n.count !== null) {
     ty += 26;
     const t = el("text", { class: "o-count", x: M.padX, y: ty });
     const num = el("tspan", { class: "o-num" }, String(n.count));
-    t.append(num, el("tspan", { class: "o-unit", dx: 3 }, "хүн"));
+    t.append(num, el("tspan", { class: "o-unit", dx: 4 }, "хүн"));
     g.append(t);
   }
   if (n.badge && BADGE_TEXT[n.badge]) {
-    const txt = BADGE_TEXT[n.badge].toUpperCase();
-    const bw = measure(txt, 9.5) * 1.08 + 14;
-    const b = el("g", { class: `o-badge ${n.badge}`, transform: `translate(${n.w - M.padX - bw} ${n.h - M.padBottom - 17})` });
-    b.append(el("rect", { width: bw, height: 17, rx: 3 }), el("text", { x: bw / 2, y: 12, "text-anchor": "middle" }, txt));
+    const txt = BADGE_TEXT[n.badge];
+    const bw = measure(txt, 9.5) * 1.06 + 16;
+    const b = el("g", { class: `o-badge ${n.badge}`, transform: `translate(${n.w - M.padX - bw + 4} ${n.h - M.padBottom - 18})` });
+    b.append(el("rect", { width: bw, height: 18, rx: 9 }), el("text", { x: bw / 2, y: 12.5, "text-anchor": "middle" }, txt));
     g.append(b);
   }
   const cnt = n.count === null ? "" : `, ${n.count} хүн`;
@@ -389,7 +440,7 @@ function openSheet(id) {
   const badge = u.badge ? `<span class="sn-badge sn-badge--${u.badge}">${BADGE_TEXT[u.badge]}</span>` : "";
   const kicker = [u.kicker, parent && u.level === "item" ? parent.title : null].filter(Boolean).join(" · ") || `Үе шат ${s.no}`;
   const li = a => a && a.length ? `<ul>${a.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
-  let body = `<p class="sheet__kicker">${esc(kicker)}</p><h3 class="sheet__title" id="sheetTitle">${esc(u.title)}</h3>`;
+  let body = `<p class="sheet__kicker"><span class="chip">${esc(kicker)}</span></p><h3 class="sheet__title" id="sheetTitle">${esc(u.title)}</h3>`;
   body += `<div class="sheet__sum">${count === null ? "" : `<b>${count}</b><span>${u.level === "col" ? "хүн, доод нэгжийг оруулаад" : "хүн"}</span>`} ${badge}</div>`;
   const note = { gov: "Компанийн засаглалын байгууллага. Гишүүд нь ажилтан биш тул орон тоонд тооцохгүй.", sub: "Тусдаа хуулийн этгээд — охин компани. Ажилчид нь компанийн орон тоонд орохгүй; хайрцгийн нийлүүлэлтийг ханган нийлүүлэлтийн менежер уялдуулна.", out: "Гадны гэрээт үйлчилгээ. Ачааллын оргил үед ашиглах тул орон тоонд тооцохгүй." }[u.kind];
   if (note) body += `<p class="sheet__empty">${note}</p>`;
@@ -447,13 +498,13 @@ function renderCompare() {
     const b = h("button", "cmp");
     b.type = "button";
     b.setAttribute("aria-label", `Үе шат ${s.no}: ${s.structure}, ${s.headcount} ажилтан — нээх`);
-    const svg = el("svg", { viewBox: `-12 -12 ${lay.width + 24} ${lay.height + 24}`, preserveAspectRatio: "xMidYMid meet", "aria-hidden": "true" });
+    const svg = el("svg", { viewBox: `-8 -8 ${lay.width + 16} ${lay.height + 16}`, preserveAspectRatio: "xMidYMid meet", "aria-hidden": "true" });
     for (const l of lay.links) svg.append(el("path", { d: l.d, class: "t-link" }));
-    for (const n of lay.nodes) svg.append(el("rect", { class: `t-box ${n.kind}`, x: n.x, y: n.y, width: n.w, height: n.h, rx: 4 }));
-    b.innerHTML = `<span class="cmp__no">${s.no}</span><span class="cmp__name">${esc(s.structure)}</span><span class="cmp__yr">${s.years}</span>`;
+    for (const n of lay.nodes) svg.append(el("rect", { class: `t-box ${n.kind}`, x: n.x, y: n.y, width: n.w, height: n.h, rx: 14 }));
+    b.innerHTML = `<div class="cmp__top"><span class="cmp__no">${s.no}</span><span class="cmp__yr">${s.years}</span></div><span class="cmp__name">${esc(s.structure)}</span>`;
     b.append(svg);
-    const dl = h("dl", "", `<dt>Ажилчид</dt><dd>${s.headcount}</dd><dt>Удирдлагын түвшин</dt><dd>${s.metrics.levels}</dd><dt>Захиралд шууд</dt><dd>${s.metrics.span}</dd><dt>Төвлөрөл</dt><dd>${CENTRAL[s.metrics.central]}</dd>`);
-    b.append(dl);
+    b.append(h("div", "cmp__big", `${s.headcount}<small style="font-size:14px;font-weight:500;letter-spacing:0;color:var(--ink-muted);margin-left:6px">ажилтан</small>`));
+    b.append(h("dl", "", `<dt>Удирдлагын түвшин</dt><dd>${s.metrics.levels}</dd><dt>Захиралд шууд</dt><dd>${s.metrics.span}</dd><dt>Төвлөрөл</dt><dd>${CENTRAL[s.metrics.central]}</dd>`));
     b.addEventListener("click", () => goStage(i, true));
     grid.append(b);
   });
@@ -471,6 +522,7 @@ function goStage(i, scroll = false) {
   renderRoles();
   renderChart(changed);
   $("#prevBtn").disabled = i === 0;
+  drawArc(i);
   $("#nextBtn").disabled = i === S.length - 1;
   try { history.replaceState(null, "", `#stage-${i + 1}`); } catch (e) {}
   if (scroll) $("#structure").scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
@@ -506,7 +558,7 @@ function initTheme() {
     const dark = document.documentElement.dataset.theme === "dark";
     btn.setAttribute("aria-label", dark ? "Гэрэл горим" : "Харанхуй горим");
     btn.setAttribute("aria-pressed", dark ? "true" : "false");
-    document.querySelector('meta[name="theme-color"]').content = dark ? "#18110f" : "#faf6f0";
+    document.querySelector('meta[name="theme-color"]').content = dark ? "#0a0a0b" : "#edeff2";
   };
   btn.addEventListener("click", () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
@@ -522,7 +574,7 @@ async function boot() {
   renderStatic();
   initTheme();
   try { await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
-  renderGrowth();
+  renderHero();
   renderSteps();
   initPanZoom();
   initSheet();

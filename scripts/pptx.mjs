@@ -2,9 +2,11 @@
 import pptxgen from "pptxgenjs";
 import { BADGE_TEXT, subtreeCount, displayCount } from "../src/layout.js";
 
-const C = { paper: "FAF6F0", raised: "FFFDF9", sunk: "F2EBE1", ink: "2A1A17", muted: "6E5C55", line: "E4D9CC", lineStrong: "957F70", cherry: "A01630", cherryStrong: "741226", cherrySoft: "F7E3E5", onCherry: "FFF8F2", cocoa: "6B4231", petrol: "2F5D6B", amber: "8A5414" };
-const HEAD = "Cambria", BODY = "Calibri";
-const RULE = { lead: C.cherry, cocoa: C.cocoa, petrol: C.petrol, support: C.lineStrong, gov: C.ink, sub: C.lineStrong, out: C.lineStrong };
+const C = { paper: "FFFFFF", raised: "FFFFFF", sunk: "F4F5F7", gov: "E4E7EB", ink: "0E0E10", muted: "63676E", line: "E3E5E9", lineStrong: "A3A8B0", cherry: "B3122E", cherryDark: "FF5A6A", onBlack: "F5F5F7", onBlackMuted: "A4A8AF", butter: "F4E5A1", butterInk: "4A3D00", sky: "CFDCF0", skyInk: "1D3A63", amber: "8A5414" };
+const FILL = { lead: C.ink, cocoa: C.butter, petrol: C.sky, gov: C.gov, support: C.paper, sub: C.paper, out: C.paper };
+const INK = { lead: C.onBlack, cocoa: C.butterInk, petrol: C.skyInk };
+const SUB = { lead: C.onBlackMuted, cocoa: C.butterInk, petrol: C.skyInk };
+const HEAD = "Arial", BODY = "Arial";
 const CENTRAL = { 4: "Өндөр", 3: "Дунджаас дээш", 2: "Дунд", 1: "Бага" };
 const signed = n => (n > 0 ? "+" + n : n < 0 ? "−" + Math.abs(n) : "0");
 const W = 13.333, H = 7.5, MX = 0.6;
@@ -30,7 +32,7 @@ export async function buildPptx(data, outFile) {
   });
   pres.defineSlideMaster({
     title: "DIVIDER", background: { color: C.paper },
-    objects: [{ rect: { x: 0, y: 0, w: 4.7, h: H, fill: { color: C.cherry } } }],
+    objects: [{ rect: { x: 0, y: 0, w: 4.7, h: H, fill: { color: C.ink } } }],
     slideNumber: { x: W - MX - 0.6, y: 7.02, w: 0.6, h: 0.3, fontFace: BODY, fontSize: 10, color: C.muted, align: "right" },
   });
 
@@ -40,11 +42,11 @@ export async function buildPptx(data, outFile) {
   pres.addSection({ title: "Танилцуулга" });
   let s = pres.addSlide({ masterName: "TITLE", sectionTitle: "Танилцуулга" });
   text(s, `${data.meta.task} — ${data.meta.topic}`, { x: MX, y: 0.7, w: 6.6, h: 0.4, fontSize: 14, color: C.muted });
-  text(s, data.meta.title, { x: MX, y: 1.5, w: 6.6, h: 2.6, fontFace: HEAD, fontSize: 54, bold: true, valign: "top", lineSpacingMultiple: 0.9 });
-  text(s, data.meta.subtitle, { x: MX, y: 4.25, w: 6.4, h: 0.8, fontSize: 18, bold: true, valign: "top" });
+  text(s, data.meta.title, { x: MX, y: 1.5, w: 6.6, h: 2.6, fontFace: HEAD, fontSize: 50, bold: true, valign: "top", lineSpacingMultiple: 0.88, charSpacing: -1 });
+  text(s, data.meta.subtitle, { x: MX, y: 3.35, w: 6.4, h: 0.8, fontSize: 18, bold: true, valign: "top" });
   text(s, [data.meta.school, data.meta.authors.length ? data.meta.authors.join(", ") : null].filter(Boolean).join("\n"), { x: MX, y: 6.2, w: 6.4, h: 0.7, fontSize: 12, color: C.muted, valign: "bottom" });
   const max = Math.max(...data.stages.map(x => x.headcount));
-  const barColors = [C.cocoa, C.ink, C.cherryStrong, C.cherry];
+  const barColors = [C.butter, C.sky, C.ink, C.cherry];
   data.stages.forEach((st, i) => {
     const bw = 1.05, gap = 0.3, x = 7.75 + i * (bw + gap), base = 5.6, bh = Math.max(0.12, (st.headcount / max) * 3.6);
     s.addShape(pres.shapes.RECTANGLE, { x, y: base - bh, w: bw, h: bh, fill: { color: barColors[i] }, line: { color: barColors[i], width: 0 }, objectName: `bar-${st.no}` });
@@ -90,10 +92,10 @@ export async function buildPptx(data, outFile) {
 
     // divider
     s = pres.addSlide({ masterName: "DIVIDER", sectionTitle: sec });
-    text(s, `Үе шат ${st.no}`, { x: 0.5, y: 0.6, w: 3.8, h: 0.4, fontSize: 16, bold: true, color: C.onCherry });
-    text(s, st.years, { x: 0.5, y: 1.0, w: 3.8, h: 0.4, fontSize: 16, color: C.onCherry });
-    text(s, String(st.headcount), { x: 0.5, y: 4.3, w: 3.8, h: 1.6, fontFace: HEAD, fontSize: 110, bold: true, color: C.onCherry, valign: "bottom" });
-    text(s, "ажилтан" + (prev ? `  ${signed(st.headcount - prev.headcount)}` : ""), { x: 0.5, y: 6.0, w: 3.8, h: 0.4, fontSize: 16, color: C.onCherry });
+    text(s, `Үе шат ${st.no}`, { x: 0.5, y: 0.6, w: 3.8, h: 0.4, fontSize: 16, bold: true, color: C.onBlack });
+    text(s, st.years, { x: 0.5, y: 1.0, w: 3.8, h: 0.4, fontSize: 16, color: C.onBlack });
+    text(s, String(st.headcount), { x: 0.5, y: 4.3, w: 3.8, h: 1.6, fontFace: HEAD, fontSize: 110, bold: true, color: C.cherryDark, valign: "bottom", charSpacing: -4 });
+    text(s, "ажилтан" + (prev ? `  ${signed(st.headcount - prev.headcount)}` : ""), { x: 0.5, y: 6.0, w: 3.8, h: 0.4, fontSize: 16, color: C.onBlack });
     text(s, st.structure, { x: 5.3, y: 0.45, w: 7.4, h: 1.25, fontFace: HEAD, fontSize: 34, bold: true, valign: "bottom", lineSpacingMultiple: 0.95 });
     text(s, st.goal, { x: 5.3, y: 1.85, w: 7.4, h: 1.1, fontSize: 14, color: C.muted, valign: "top" });
     text(s, "Яагаад энэ бүтэц", { x: 5.3, y: 3.05, w: 7.4, h: 0.35, fontSize: 14, bold: true, color: C.cherry });
@@ -170,9 +172,10 @@ export async function buildPptx(data, outFile) {
 
   // ── end
   s = pres.addSlide({ masterName: "TITLE", sectionTitle: "Дүгнэлт" });
-  s.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: H, fill: { color: C.cherry }, line: { color: C.cherry, width: 0 } });
-  text(s, "Анхаарал хандуулсанд баярлалаа", { x: MX, y: 2.0, w: W - MX * 2, h: 1.9, valign: "bottom", fontFace: HEAD, fontSize: 48, bold: true, color: C.onCherry });
-  text(s, "Асуулт, санал", { x: MX, y: 4.15, w: W - MX * 2, h: 0.5, fontSize: 20, color: C.onCherry });
+  s.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: H, fill: { color: C.ink }, line: { color: C.ink, width: 0 } });
+  s.addShape(pres.shapes.OVAL, { x: MX, y: 1.9, w: 0.32, h: 0.32, fill: { color: C.cherry }, line: { color: C.cherry, width: 0 } });
+  text(s, "Анхаарал хандуулсанд баярлалаа", { x: MX, y: 2.0, w: W - MX * 2, h: 1.9, valign: "bottom", fontFace: HEAD, fontSize: 48, bold: true, color: C.onBlack });
+  text(s, "Асуулт, санал", { x: MX, y: 4.15, w: W - MX * 2, h: 0.5, fontSize: 20, color: C.onBlack });
 
   await pres.writeFile({ fileName: outFile });
 }
@@ -188,14 +191,14 @@ function drawChart(pres, s, st) {
   const line = (x, y, w, h, dashed) => s.addShape(pres.shapes.LINE, { x, y, w, h, line: { color: C.lineStrong, width: 1, dashType: dashed ? "dash" : "solid" } });
   const box = (x, y, w, h, u) => {
     const out = u.kind === "out";
-    s.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill: { color: out ? C.paper : C.raised }, line: { color: out ? C.lineStrong : C.line, width: 0.75, dashType: out ? "dash" : "solid" }, objectName: `node-${u.id}` });
-    if (!out) s.addShape(pres.shapes.RECTANGLE, { x, y, w, h: 0.045, fill: { color: RULE[u.kind] }, line: { color: RULE[u.kind], width: 0 } });
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.12, fill: { color: FILL[u.kind] || C.paper }, line: { color: out ? C.lineStrong : (u.kind === "sub" ? C.ink : (u.kind === "support" ? C.line : FILL[u.kind])), width: out || u.kind === "sub" ? 1.25 : 0.75, dashType: out ? "dash" : "solid" }, objectName: `node-${u.id}` });
+    if (!out) s.addShape(pres.shapes.OVAL, { x: x + w - 0.2, y: y + 0.1, w: 0.08, h: 0.08, fill: { color: u.kind === "lead" ? C.cherryDark : (INK[u.kind] || C.lineStrong) }, line: { color: u.kind === "lead" ? C.cherryDark : (INK[u.kind] || C.lineStrong), width: 0 } });
   };
   const nodeText = (x, y, w, h, u, count) => {
     const runs = [];
-    if (u.kicker) runs.push({ text: u.kicker.toUpperCase(), options: { fontSize: 9, bold: true, color: C.muted, charSpacing: 1, breakLine: true } });
-    runs.push({ text: u.title, options: { fontSize: 13, bold: true, color: C.ink, breakLine: count !== null || !!u.badge } });
-    if (count !== null) runs.push({ text: `${count} хүн`, options: { fontSize: 12.5, bold: true, color: u.kind === "lead" ? C.cherry : C.ink } });
+    if (u.kicker) runs.push({ text: u.kicker, options: { fontSize: 9, color: SUB[u.kind] || C.muted, breakLine: true } });
+    runs.push({ text: u.title, options: { fontSize: 13, bold: true, color: INK[u.kind] || C.ink, breakLine: count !== null || !!u.badge } });
+    if (count !== null) runs.push({ text: `${count} хүн`, options: { fontSize: 12.5, bold: true, color: INK[u.kind] || C.ink } });
     if (u.badge) runs.push({ text: (count !== null ? "   " : "") + BADGE_TEXT[u.badge], options: { fontSize: 8.5, bold: true, color: u.badge === "new" ? C.cherry : C.muted } });
     s.addText(runs, { isTextBox: true, x: x + 0.1, y: y + 0.08, w: w - 0.2, h: h - 0.12, margin: 0, fontFace: BODY, valign: "top" });
   };
@@ -232,14 +235,14 @@ function drawChart(pres, s, st) {
     box(x, colY, colW, hgt, c);
     nodeText(x, colY, colW, headH, c, subtreeCount(st, c.id));
     if (items.length) {
-      s.addShape(pres.shapes.LINE, { x: x + 0.1, y: colY + headH, w: colW - 0.2, h: 0, line: { color: C.line, width: 0.75 } });
+      s.addShape(pres.shapes.LINE, { x: x + 0.1, y: colY + headH, w: colW - 0.2, h: 0, line: { color: c.kind === "support" ? C.line : (INK[c.kind] || C.line), width: 0.5, transparency: 70 } });
       items.forEach((it, k) => {
         const iy = colY + headH + 0.05 + k * rowH;
         const cnt = displayCount(st, it);
         const label = it.title + (it.kind === "out" ? " (гэрээт)" : "");
-        s.addText([{ text: label, options: { color: it.kind === "out" ? C.muted : C.ink } }, ...(it.badge && it.badge !== "out" ? [{ text: "  " + BADGE_TEXT[it.badge], options: { fontSize: 8, bold: true, color: it.badge === "new" ? C.cherry : C.muted } }] : [])],
+        s.addText([{ text: label, options: { color: it.kind === "out" ? C.muted : (INK[c.kind] || C.ink) } }, ...(it.badge && it.badge !== "out" ? [{ text: "  " + BADGE_TEXT[it.badge], options: { fontSize: 8, bold: true, color: it.badge === "new" ? C.cherry : C.muted } }] : [])],
           { isTextBox: true, x: x + 0.1, y: iy, w: colW - 0.65, h: rowH, margin: 0, fontFace: BODY, fontSize: 12, valign: "middle", fit: "shrink" });
-        s.addText(cnt === null ? "—" : String(cnt), { isTextBox: true, x: x + colW - 0.55, y: iy, w: 0.45, h: rowH, margin: 0, fontFace: BODY, fontSize: 12, bold: true, align: "right", valign: "middle", color: C.ink });
+        s.addText(cnt === null ? "—" : String(cnt), { isTextBox: true, x: x + colW - 0.55, y: iy, w: 0.45, h: rowH, margin: 0, fontFace: BODY, fontSize: 12, bold: true, align: "right", valign: "middle", color: INK[c.kind] || C.ink });
       });
     }
   });

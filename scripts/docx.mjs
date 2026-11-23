@@ -11,8 +11,8 @@ import { layout, staticSVG, PALETTE, BADGE_TEXT } from "../src/layout.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const FONT_DIR = path.join(here, "fonts");
-const C = { ink: "2A1A17", muted: "6E5C55", cherry: "A01630", line: "E4D9CC", sunk: "F2EBE1", cocoa: "6B4231" };
-const HEAD = "Cambria", BODY = "Calibri";
+const C = { ink: "0E0E10", muted: "63676E", cherry: "B3122E", line: "E3E5E9", sunk: "F4F5F7", cocoa: "4A3D00" };
+const HEAD = "Arial", BODY = "Arial";
 const signed = n => (n > 0 ? "+" + n : n < 0 ? "−" + Math.abs(n) : "0");
 const CENTRAL = { 4: "Өндөр", 3: "Дунджаас дээш", 2: "Дунд", 1: "Бага" };
 
@@ -140,7 +140,7 @@ export async function buildDocx(data, outFile) {
     styles: {
       default: { document: { run: { font: BODY, size: 22, color: C.ink } } },
       paragraphStyles: [
-        { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true, run: { font: HEAD, size: 34, bold: true, color: C.ink }, paragraph: { spacing: { before: 120, after: 160 }, keepNext: true, outlineLevel: 0 } },
+        { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true, run: { font: HEAD, size: 36, bold: true, color: C.ink }, paragraph: { spacing: { before: 120, after: 160 }, keepNext: true, outlineLevel: 0 } },
         { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true, run: { font: BODY, size: 23, bold: true, color: C.cherry }, paragraph: { spacing: { before: 240, after: 100 }, keepNext: true, outlineLevel: 1 } },
       ],
     },
