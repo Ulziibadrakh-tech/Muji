@@ -32,11 +32,31 @@
 </header>
 
 <main id="top">
+  <!-- ── cover: UFE standard title page ───────── -->
+  <section class="cover" aria-label="Нүүр хуудас">
+    <article class="card cover__sheet">
+      <header class="cover__head">
+        <img class="cover__logo" src="ufe-logo.png" width="70" height="90" alt="Санхүү, эдийн засгийн их сургуулийн лого">
+        <div class="cover__school">
+          <p class="cover__uni" id="cvUni"></p>
+          <p class="cover__prog" id="cvProg"></p>
+        </div>
+      </header>
+      <h1 class="cover__title" id="cvTitle"></h1>
+      <dl class="cover__meta">
+        <dt>Хичээлийн нэр:</dt><dd id="cvCourse"></dd>
+        <dt>Группийн дугаар:</dt><dd id="cvGroup"></dd>
+      </dl>
+      <p class="cover__topic"><b>Сэдэв</b>: “<i id="cvTopic"></i>”</p>
+      <div class="cover__sign" id="cvSign"></div>
+      <p class="cover__city" id="cvCity"></p>
+    </article>
+  </section>
   <!-- ── hero bento ───────────────────────────── -->
   <section class="bento hero" aria-label="Тойм">
     <article class="card card--hero">
       <span class="chip" id="heroMeta"></span>
-      <h1 class="hero__title" id="heroTitle"></h1>
+      <h2 class="hero__title" id="heroTitle"></h2>
       <p class="hero__sub" id="heroSub"></p>
       <p class="hero__lede" id="heroLede"></p>
       <div class="hero__cta">

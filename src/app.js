@@ -25,7 +25,16 @@ const measure = (t, size, weight = 600) => { ctx.font = `${weight} ${size}px "Go
 /* ── static text ─────────────────────────────────────────── */
 function renderStatic() {
   const m = data.meta;
-  $("#heroMeta").textContent = `${m.task} — ${m.topic}` + (m.authors.length ? ` · ${m.authors.join(", ")}` : "");
+  $("#heroMeta").textContent = `${m.task} — ${m.topic}`;
+  $("#cvUni").textContent = m.school.toUpperCase().replace(",", "");
+  $("#cvProg").textContent = (m.program || "").toUpperCase();
+  $("#cvTitle").textContent = m.task.replace("№ ", "").toUpperCase();
+  $("#cvCourse").textContent = m.course || "";
+  $("#cvGroup").textContent = m.group || "";
+  $("#cvTopic").textContent = `${m.title}ийн ${m.topic}`.toUpperCase();
+  $("#cvSign").innerHTML = [["Гүйцэтгэсэн", m.authors], ["Шалгасан багш", [m.teacher].filter(Boolean)]]
+    .map(([k, names]) => `<span class="cover__k">${esc(k)}</span><span class="cover__dots" aria-hidden="true"></span><span class="cover__v">${names.map(esc).join("<br>")}</span>`).join("");
+  $("#cvCity").textContent = [m.city, m.year].filter(Boolean).join(". ");
   $("#heroTitle").textContent = m.title;
   $("#heroSub").textContent = m.subtitle;
   $("#heroLede").textContent = data.brief.lede;
