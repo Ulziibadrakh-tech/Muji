@@ -18,7 +18,7 @@ main > section { max-width: 1240px; margin: 0 auto; padding: var(--space-8) clam
 .section-lede { margin: 0 0 var(--space-7); max-width: 60ch; color: var(--ink-muted); }
 
 /* ── top bar ─────────────────────────────────────── */
-.bar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--paper) 88%, transparent); -webkit-backdrop-filter: saturate(1.2) blur(10px); backdrop-filter: saturate(1.2) blur(10px); border-bottom: var(--stroke-hair) solid var(--line); }
+.bar { position: sticky; top: 0; z-index: 20; padding-top: env(safe-area-inset-top); background: color-mix(in srgb, var(--paper) 88%, transparent); -webkit-backdrop-filter: saturate(1.2) blur(10px); backdrop-filter: saturate(1.2) blur(10px); border-bottom: var(--stroke-hair) solid var(--line); }
 .bar__in { max-width: 1240px; margin: 0 auto; height: 56px; display: flex; align-items: center; gap: var(--space-5); padding: 0 clamp(16px, 4vw, 48px); }
 .wordmark { font-family: var(--font-serif); font-size: 26px; font-weight: 600; text-decoration: none; letter-spacing: -0.01em; }
 .bar__nav { display: flex; gap: var(--space-5); margin-left: auto; font-size: 14px; }
