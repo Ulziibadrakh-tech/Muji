@@ -1,0 +1,77 @@
+/* Сарнай — generated from tokens.json */
+:root, [data-theme="light"] {
+  --paper: #faf6f0;
+  --paper-raised: #fffdf9;
+  --paper-sunk: #f2ebe1;
+  --ink: #2a1a17;
+  --ink-muted: #6e5c55;
+  --line: #e4d9cc;
+  --line-strong: #957f70;
+  --cherry: #a01630;
+  --cherry-strong: #741226;
+  --cherry-soft: #f7e3e5;
+  --on-cherry: #fff8f2;
+  --cocoa: #6b4231;
+  --cocoa-soft: #efe4dc;
+  --petrol: #2f5d6b;
+  --petrol-soft: #e2ecee;
+  --amber: #8a5414;
+  --amber-soft: #f6ead8;
+  --focus-ring: var(--cherry);
+  --shadow-raised: 0 1px 0 rgba(42,26,23,0.05), 0 10px 24px -14px rgba(42,26,23,0.22);
+}
+[data-theme="dark"] {
+  --paper: #18110f;
+  --paper-raised: #221916;
+  --paper-sunk: #120c0b;
+  --ink: #f4ece4;
+  --ink-muted: #b5a59b;
+  --line: #3a2c27;
+  --line-strong: #80695e;
+  --cherry: #e8566b;
+  --cherry-strong: #f27d8f;
+  --cherry-soft: #331519;
+  --on-cherry: #18110f;
+  --cocoa: #cfa48b;
+  --cocoa-soft: #2b1e19;
+  --petrol: #7fb3c2;
+  --petrol-soft: #17282d;
+  --amber: #e3a75a;
+  --amber-soft: #3a2a16;
+  --focus-ring: var(--cherry);
+  --shadow-raised: 0 1px 0 rgba(0,0,0,0.45), 0 12px 28px -14px rgba(0,0,0,0.7);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --radius-0: 0px;
+  --radius-s: 2px;
+  --radius-m: 4px;
+  --radius-pill: 999px;
+  --stroke-hair: 1px;
+  --stroke-rule: 3px;
+  --font-serif: "Cormorant Garamond Variable", "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-sans: "Golos Text Variable", "Golos Text", "Segoe UI", system-ui, sans-serif;
+}
+.display-xl { font-family: var(--font-serif); font-size: 76px; line-height: 1; font-weight: 600; letter-spacing: -0.01em; }
+.display-l { font-family: var(--font-serif); font-size: 52px; line-height: 56px; font-weight: 600; letter-spacing: -0.005em; }
+.title { font-family: var(--font-serif); font-size: 34px; line-height: 40px; font-weight: 600; }
+.numeral { font-family: var(--font-serif); font-size: 96px; line-height: 1; font-weight: 500; }
+.heading { font-family: var(--font-sans); font-size: 22px; line-height: 30px; font-weight: 600; }
+.subheading { font-family: var(--font-sans); font-size: 17px; line-height: 24px; font-weight: 600; }
+.body { font-family: var(--font-sans); font-size: 16px; line-height: 26px; font-weight: 400; }
+.body-s { font-family: var(--font-sans); font-size: 14px; line-height: 22px; font-weight: 400; }
+.label { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.1em; }
+@font-face { font-family: "Cormorant Garamond Variable"; src: url("fonts/CormorantGaramond-latin.woff2") format("woff2"); font-weight: 300 700; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Cormorant Garamond Variable"; src: url("fonts/CormorantGaramond-cyrillic.woff2") format("woff2"); font-weight: 300 700; font-style: normal; font-display: swap; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Cormorant Garamond Variable"; src: url("fonts/CormorantGaramond-cyrillic-ext.woff2") format("woff2"); font-weight: 300 700; font-style: normal; font-display: swap; unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+@font-face { font-family: "Golos Text Variable"; src: url("fonts/GolosText-latin.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Golos Text Variable"; src: url("fonts/GolosText-cyrillic.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Golos Text Variable"; src: url("fonts/GolosText-cyrillic-ext.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="mn" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Сарнай шоколадны үйлдвэр — байгууллагын бүтэц, хүний нөөц</title>
+<meta name="description" content="Семинарын даалгавар 2: Сарнай шоколадны үйлдвэрийн 2027–2031 оны бүтэц зохион байгуулалт, албан тушаал, орон тоо.">
+<meta name="theme-color" content="#faf6f0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/GolosText-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/CormorantGaramond-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="site.css">
+<script>try{var t=localStorage.getItem("sarnai-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#structure">Бүтэц рүү алгасах</a>
+
+<header class="bar">
+  <div class="bar__in">
+    <a class="wordmark" href="#top" aria-label="Сарнай — эхлэл">Сарнай</a>
+    <nav class="bar__nav" aria-label="Хэсгүүд">
+      <a href="#brief">Кейс</a>
+      <a href="#structure">Бүтэц</a>
+      <a href="#compare">Харьцуулалт</a>
+      <a href="#files">Файлууд</a>
+    </nav>
+    <button class="theme" type="button" id="themeBtn" aria-label="Харанхуй горим">
+      <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 3a7 7 0 0 1 0 14z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="hero__text">
+      <p class="hero__meta" id="heroMeta"></p>
+      <h1 class="hero__title" id="heroTitle"></h1>
+      <p class="hero__sub" id="heroSub"></p>
+      <p class="hero__lede" id="heroLede"></p>
+      <div class="hero__cta">
+        <a class="sn-btn sn-btn--primary" href="#structure">Бүтцийг үзэх</a>
+        <a class="sn-btn" href="#files">Тайлан, слайд татах</a>
+      </div>
+    </div>
+    <figure class="growth" aria-labelledby="growthCap">
+      <svg id="growth" viewBox="0 0 520 340" role="img" aria-label="Ажилчдын тоо: 9, 45, 48, 55"></svg>
+      <figcaption id="growthCap">Төлөвлөсөн ажилчдын тоо. Багана дээр дарж тухайн үеийн бүтцийг нээнэ.</figcaption>
+    </figure>
+  </section>
+
+  <section class="brief" id="brief" aria-labelledby="briefH">
+    <h2 class="section-title" id="briefH">Кейс ба даалгавар</h2>
+    <div class="brief__grid">
+      <div>
+        <p class="brief__intro">Даалгаврын агуулга</p>
+        <ol class="brief__task" id="briefTask"></ol>
+      </div>
+      <dl class="brief__facts" id="briefFacts"></dl>
+    </div>
+  </section>
+
+  <section class="explorer" id="structure" aria-labelledby="eraTitle">
+    <div class="explorer__nav">
+      <div class="sn-steps" role="tablist" aria-label="Үе шат" id="steps"></div>
+    </div>
+    <div class="explorer__head" id="eraHead"></div>
+
+    <div class="explorer__body">
+      <div class="chart" id="chart">
+        <div class="chart__tools">
+          <div class="seg" role="radiogroup" aria-label="Харагдац">
+            <button type="button" role="radio" data-mode="tree" aria-checked="true">Мод</button>
+            <button type="button" role="radio" data-mode="list" aria-checked="false">Жагсаалт</button>
+          </div>
+          <div class="zoom" id="zoomTools">
+            <button type="button" data-zoom="out" aria-label="Жижигрүүлэх">−</button>
+            <button type="button" data-zoom="fit" aria-label="Бүтнээр харах">Бүтэн</button>
+            <button type="button" data-zoom="in" aria-label="Томруулах">+</button>
+          </div>
+        </div>
+        <div class="chart__view" id="chartView">
+          <svg id="org" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="Бүтцийн зураглал"><g id="world"><g id="links"></g><g id="nodes"></g></g></svg>
+        </div>
+        <p class="chart__hint" id="chartHint">Нэгж дээр дарж албан тушаал, үүргийг харна. Чирж, хоёр хуруугаар томруулна.</p>
+        <ul class="legend" aria-label="Тайлбар">
+          <li><i class="k-lead"></i>Удирдлага</li>
+          <li><i class="k-cocoa"></i>Шоколад &amp; боов</li>
+          <li><i class="k-petrol"></i>Гоо сайхан</li>
+          <li><i class="k-support"></i>Дэмжих, төв</li>
+          <li><i class="k-out"></i>Гэрээт</li>
+        </ul>
+      </div>
+      <aside class="why" id="why" aria-label="Бүтцийн үндэслэл"></aside>
+    </div>
+
+    <div class="roles" id="roles"></div>
+
+    <div class="explorer__pager">
+      <button class="sn-btn" type="button" id="prevBtn">Өмнөх үе шат</button>
+      <button class="sn-btn sn-btn--primary" type="button" id="nextBtn">Дараагийн үе шат</button>
+    </div>
+  </section>
+
+  <section class="compare" id="compare" aria-labelledby="compareH">
+    <h2 class="section-title" id="compareH">Бүтцийн хувьсал</h2>
+    <p class="section-lede">Нэг удирдагчтай энгийн бүтцээс бүрэн эрхтэй салбаруудтай хувьцаат компани хүртэл.</p>
+    <div class="compare__grid" id="compareGrid"></div>
+    <div class="conclusion">
+      <h3>Дүгнэлт</h3>
+      <ol id="conclusion"></ol>
+    </div>
+  </section>
+
+  <section class="files" id="files" aria-labelledby="filesH">
+    <h2 class="section-title" id="filesH">Файлууд</h2>
+    <p class="section-lede">Сайттай ижил агуулгаас үүссэн. Засвар хийхэд гурвуулаа хамт шинэчлэгдэнэ.</p>
+    <div class="files__grid">
+      <a class="file" href="downloads/sarnai-tailan.docx" download>
+        <span class="file__ext">DOCX</span>
+        <span class="file__name">Бие даалтын тайлан</span>
+        <span class="file__desc">Кейс, үе шат бүрийн бүтэц, хүснэгт, дүгнэлт. Word дээр засварлана.</span>
+        <span class="file__go">Татах</span>
+      </a>
+      <a class="file" href="downloads/sarnai-ilteh.pptx" download>
+        <span class="file__ext">PPTX</span>
+        <span class="file__name">Илтгэлийн слайд</span>
+        <span class="file__desc">Семинарт танилцуулах 16:9 слайд. Бүтцийн зураглал засварлах боломжтой хэлбэрээр.</span>
+        <span class="file__go">Татах</span>
+      </a>
+      <a class="file" href="downloads/sarnai-data.json" download>
+        <span class="file__ext">JSON</span>
+        <span class="file__name">Түүхий өгөгдөл</span>
+        <span class="file__desc">Бүх нэгж, албан тушаал, орон тоо — шалгах, өөр хэрэгсэлд ашиглах.</span>
+        <span class="file__go">Татах</span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p id="footText"></p>
+</footer>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet__scrim" data-close></div>
+  <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet__grab" id="sheetGrab" aria-hidden="true"></div>
+    <button class="sheet__close" type="button" data-close aria-label="Хаах">×</button>
+    <div class="sheet__body" id="sheetBody"></div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
