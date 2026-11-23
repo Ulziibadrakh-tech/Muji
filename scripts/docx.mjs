@@ -61,7 +61,7 @@ function rolesTable(stage, prev) {
   for (const r of stage.removed || []) {
     rows.push(new TableRow({ cantSplit: true, children: [cell([new Paragraph({ spacing: { after: 20 }, children: [new TextRun({ text: r.t, bold: true, size: 19 }), new TextRun({ text: "  Хасагдсан", size: 16, color: C.muted, bold: true })] })], W[0]), cell(cp(r.note), W[1]), cell(cp("—"), W[2]), cell(cp(signed(r.d), { bold: true, align: AlignmentType.RIGHT }), W[3])] }));
   }
-  const totalLabel = first ? "Нийт орон тоо" : `Нийт цэвэр хэрэгцээ (${prev.headcount} → ${stage.headcount})`;
+  const totalLabel = first ? "Нийт орон тоо" : `Нийт цэвэр орон тооны өөрчлөлт (${prev.headcount} → ${stage.headcount})`;
   const totalVal = first ? String(stage.headcount) : signed(stage.headcount - prev.headcount);
   rows.push(new TableRow({ children: [
     new TableCell({ columnSpan: 3, width: { size: W[0] + W[1] + W[2], type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill: C.sunk }, margins: { top: 80, bottom: 80, left: 100, right: 100 }, borders: { top: { style: BorderStyle.SINGLE, size: 8, color: C.ink }, bottom: border, left: noBorder, right: noBorder }, children: [cp(totalLabel, { bold: true })] }),
@@ -119,7 +119,7 @@ export async function buildDocx(data, outFile) {
     ] }));
     children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun("Стратегийн зорилго")] }));
     children.push(P(s.goal));
-    children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun("Бүтцийн сонголтын үндэслэл")] }));
+    children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun("Энэ бүтцийг сонгосон үндэслэл")] }));
     s.why.forEach(t => children.push(bullet(t)));
     children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun("Бүтцийн зураглал")] }));
     children.push(orgImage(s));

@@ -219,7 +219,7 @@ function renderRoles() {
   }).join("");
   body += (s.removed || []).map(r => `<tr><td data-l="${head[0]}">${esc(r.t)}<span class="sn-badge sn-badge--reduced">Хасагдсан</span></td><td data-l="${head[1]}">${esc(r.note)}</td><td data-l="${head[2]}">—</td><td class="num net-neg" data-l="${head[3]}">${signed(r.d)}</td></tr>`).join("");
   const prev = S[state.i - 1];
-  const total = first ? `Нийт орон тоо<b>${s.headcount}</b>` : `Цэвэр хэрэгцээ ${prev.headcount} → ${s.headcount}<b>${signed(s.headcount - prev.headcount)}</b>`;
+  const total = first ? `Нийт орон тоо<b>${s.headcount}</b>` : `Нийт цэвэр орон тооны өөрчлөлт ${prev.headcount} → ${s.headcount}<b>${signed(s.headcount - prev.headcount)}</b>`;
   $("#roles").innerHTML = `
     <div class="roles__head"><h3>${first ? "Албан тушаал ба орон тоо" : "Өөрчлөгдсөн, нэмэгдсэн албан тушаалууд"}</h3><span class="roles__total">${total}</span></div>
     <table class="tbl">
@@ -545,7 +545,7 @@ function initModes() {
   const set = m => {
     state.mode = m;
     seg.querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", b.dataset.mode === m ? "true" : "false"));
-    $("#chartHint").textContent = m === "tree" ? "Нэгж дээр дарж албан тушаал, үүргийг харна. Чирж, хоёр хуруугаар томруулна." : "Нэгж дээр дарж албан тушаал, үүргийг харна.";
+    $("#chartHint").textContent = m === "tree" ? "Нэгжийг сонгож албан тушаал, үүргийн мэдээллийг харна. Зургийг чирж байрлалыг өөрчилж, хоёр хуруугаар томруулна." : "Нэгжийг сонгож албан тушаал, үүргийн мэдээллийг харна.";
     renderChart(false);
   };
   seg.addEventListener("click", e => { const b = e.target.closest("button"); if (b) set(b.dataset.mode); });

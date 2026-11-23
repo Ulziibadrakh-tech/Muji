@@ -136,7 +136,7 @@ export async function buildPptx(data, outFile) {
       });
       const tableRows = [hdr, ...body];
       if (p === pages - 1) {
-        const lbl = prev ? `Нийт цэвэр хэрэгцээ (${prev.headcount} → ${st.headcount})` : "Нийт орон тоо";
+        const lbl = prev ? `Нийт цэвэр орон тооны өөрчлөлт (${prev.headcount} → ${st.headcount})` : "Нийт орон тоо";
         const val = prev ? signed(st.headcount - prev.headcount) : String(st.headcount);
         const ft = { fill: { color: C.sunk }, bold: true, border: [{ pt: 1, color: C.ink }, { type: "none" }, { type: "none" }, { type: "none" }] };
         tableRows.push([{ text: lbl, options: { ...ft, colspan: 3 } }, { text: val, options: { ...ft, align: "right", color: C.cherry, fontSize: 14 } }]);
