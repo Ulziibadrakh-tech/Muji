@@ -15,7 +15,6 @@ fs.rmSync(dist, { recursive: true, force: true });
 fs.cpSync(src, dist, { recursive: true });
 const dl = path.join(dist, "downloads");
 fs.mkdirSync(dl, { recursive: true });
-fs.writeFileSync(path.join(dl, "sarnai-data.json"), JSON.stringify(data, null, 2));
 
 const skipFiles = process.argv.includes("--site-only");
 if (!skipFiles) {
@@ -32,4 +31,4 @@ if (!skipFiles) {
     fs.writeFileSync(file, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));
   }
 }
-console.log("✓ dist/ бэлэн" + (skipFiles ? " (файлгүй)" : " — docx, pptx, json"));
+console.log("✓ dist/ бэлэн" + (skipFiles ? " (файлгүй)" : " — docx, pptx"));

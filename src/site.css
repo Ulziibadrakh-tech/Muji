@@ -297,7 +297,7 @@ main { max-width: 1320px; margin: 0 auto; padding: 0 clamp(12px, 3vw, 32px); }
 .conclusion li::before { content: counter(c, decimal-leading-zero); position: absolute; left: 0; top: -3px; font-size: 26px; font-weight: 600; letter-spacing: -0.04em; color: var(--cherry-on-dark); }
 
 /* ── files ──────────────────────────────────── */
-.file { grid-column: span 4; display: grid; grid-template-rows: auto auto 1fr auto; gap: var(--s2); min-height: 240px; text-decoration: none; transition: transform 260ms var(--ease), box-shadow 260ms ease; }
+.file { grid-column: span 6; display: grid; grid-template-rows: auto 1fr auto; gap: var(--s2); min-height: 200px; text-decoration: none; transition: transform 260ms var(--ease), box-shadow 260ms ease; }
 .file:hover { transform: translateY(-3px); }
 .file:hover .go { transform: rotate(45deg); }
 .file__ext { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; opacity: 0.7; }

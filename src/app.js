@@ -32,7 +32,7 @@ function renderStatic() {
   $("#briefTask").innerHTML = data.brief.task.map(t => `<li>${esc(t)}</li>`).join("");
   $("#briefFacts").innerHTML = data.brief.facts.map(f => `<dt>${esc(f.k)}</dt><dd>${esc(f.v)}</dd>`).join("");
   $("#conclusion").innerHTML = data.conclusion.map(t => `<li>${esc(t)}</li>`).join("");
-  $("#footText").textContent = `${m.task} · ${m.topic} · ${m.school} · ${m.status}`;
+  $("#footText").textContent = [m.task, m.topic, m.school, m.authors.join(", ")].filter(Boolean).join(" · ");
 }
 
 /* ── hero bento: KPIs, gauges, net-need bars, centralisation arc ── */
