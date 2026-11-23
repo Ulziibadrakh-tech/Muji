@@ -1,4 +1,7 @@
 // Presentation (.pptx) generated from src/data.js — native shapes, editable in PowerPoint.
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import pptxgen from "pptxgenjs";
 import { BADGE_TEXT, subtreeCount, displayCount } from "../src/layout.js";
 
@@ -10,6 +13,24 @@ const HEAD = "Arial", BODY = "Arial";
 const CENTRAL = { 4: "Өндөр", 3: "Дунджаас дээш", 2: "Дунд", 1: "Бага" };
 const signed = n => (n > 0 ? "+" + n : n < 0 ? "−" + Math.abs(n) : "0");
 const W = 13.333, H = 7.5, MX = 0.6;
+const LOGO = "image/png;base64," + fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "ufe-logo.png")).toString("base64");
+const TNR = "Times New Roman";
+// rough Arial wrap estimate (inches): good enough to size boxes and paginate tables
+const charW = (pt, bold) => pt / 72 * (bold ? 0.55 : 0.51);
+function lines(str, wIn, pt, bold) {
+  const max = Math.max(1, Math.floor(wIn / charW(pt, bold)));
+  let n = 0;
+  for (const para of String(str).split("\n")) {
+    let cur = 0; n++;
+    for (const w of para.split(/\s+/)) {
+      const L = w.length;
+      if (cur && cur + 1 + L > max) { n++; cur = L; } else cur += (cur ? 1 : 0) + L;
+      while (cur > max) { n++; cur -= max; }
+    }
+  }
+  return n;
+}
+const LH = pt => pt * 1.22 / 72;
 
 export async function buildPptx(data, outFile) {
   const pres = new pptxgen();
@@ -38,13 +59,36 @@ export async function buildPptx(data, outFile) {
 
   const text = (s, t, o) => s.addText(t, { isTextBox: true, margin: 0, fontFace: BODY, color: C.ink, ...o });
 
-  // ── 1. title
+  // ── 1. cover — UFE standard title page
   pres.addSection({ title: "Танилцуулга" });
   let s = pres.addSlide({ masterName: "TITLE", sectionTitle: "Танилцуулга" });
+  const m = data.meta, tt = (t, o) => text(s, t, { fontFace: TNR, ...o });
+  s.addImage({ data: LOGO, x: 1.0, y: 0.5, w: 0.86, h: 1.1, altText: "Санхүү, эдийн засгийн их сургуулийн лого", objectName: "ufe-logo" });
+  tt(m.school.toUpperCase().replace(",", ""), { x: 2.2, y: 0.62, w: W - 4.4, h: 0.45, fontSize: 20, bold: true, underline: { style: "sng" }, align: "center" });
+  tt(m.program.toUpperCase(), { x: 2.2, y: 1.08, w: W - 4.4, h: 0.38, fontSize: 15, bold: true, align: "center" });
+  tt(m.task.replace("№ ", "").toUpperCase(), { x: MX, y: 2.05, w: W - MX * 2, h: 0.75, fontSize: 38, bold: true, align: "center", valign: "middle" });
+  const LX = 2.3;
+  [["Хичээлийн нэр:", m.course], ["Группийн дугаар:", m.group]].forEach(([k, v], i) => {
+    tt(k, { x: LX, y: 3.1 + i * 0.42, w: 3.2, h: 0.4, fontSize: 18, bold: true });
+    tt(v, { x: LX + 3.4, y: 3.1 + i * 0.42, w: 5.5, h: 0.4, fontSize: 18, italic: true });
+  });
+  tt([{ text: "Сэдэв", options: { bold: true } }, { text: ": “" }, { text: `${m.title}ийн ${m.topic}`.toUpperCase(), options: { italic: true } }, { text: "”" }], { x: LX, y: 4.15, w: W - LX - 1.2, h: 0.45, fontSize: 16 });
+  const SY = 4.85, SL = 0.29, dots = "……………………………";
+  tt("Гүйцэтгэсэн", { x: LX + 0.5, y: SY, w: 2.2, h: SL, fontSize: 15 });
+  tt(dots, { x: LX + 2.8, y: SY, w: 2.6, h: SL, fontSize: 15 });
+  tt(m.authors.join("\n"), { x: LX + 5.6, y: SY, w: 3.6, h: SL * m.authors.length, fontSize: 15, valign: "top", lineSpacingMultiple: 1.0 });
+  const TY = SY + SL * Math.max(1, m.authors.length) + 0.12;
+  tt("Шалгасан багш", { x: LX + 0.5, y: TY, w: 2.2, h: SL, fontSize: 15 });
+  tt(dots, { x: LX + 2.8, y: TY, w: 2.6, h: SL, fontSize: 15 });
+  tt(m.teacher, { x: LX + 5.6, y: TY, w: 3.6, h: SL, fontSize: 15 });
+  tt(`${m.city}. ${m.year}`, { x: MX, y: 6.85, w: W - MX * 2, h: 0.35, fontSize: 15, align: "center" });
+
+  // ── 2. title
+  s = pres.addSlide({ masterName: "TITLE", sectionTitle: "Танилцуулга" });
   text(s, `${data.meta.task} — ${data.meta.topic}`, { x: MX, y: 0.7, w: 6.6, h: 0.4, fontSize: 14, color: C.muted });
-  text(s, data.meta.title, { x: MX, y: 1.5, w: 6.6, h: 2.6, fontFace: HEAD, fontSize: 50, bold: true, valign: "top", lineSpacingMultiple: 0.88, charSpacing: -1 });
-  text(s, data.meta.subtitle, { x: MX, y: 3.35, w: 6.4, h: 0.8, fontSize: 18, bold: true, valign: "top" });
-  text(s, [data.meta.school, data.meta.authors.length ? data.meta.authors.join(", ") : null].filter(Boolean).join("\n"), { x: MX, y: 6.2, w: 6.4, h: 0.7, fontSize: 12, color: C.muted, valign: "bottom" });
+  text(s, data.meta.title, { x: MX, y: 1.5, w: 6.6, h: 2.0, fontFace: HEAD, fontSize: 50, bold: true, valign: "top", lineSpacingMultiple: 0.88, charSpacing: -1 });
+  text(s, data.meta.subtitle, { x: MX, y: 3.6, w: 6.4, h: 0.8, fontSize: 18, bold: true, valign: "top" });
+  text(s, `${data.meta.course} · Групп ${data.meta.group}`, { x: MX, y: 6.4, w: 6.4, h: 0.4, fontSize: 12, color: C.muted, valign: "bottom" });
   const max = Math.max(...data.stages.map(x => x.headcount));
   const barColors = [C.butter, C.sky, C.ink, C.cherry];
   data.stages.forEach((st, i) => {
@@ -113,14 +157,29 @@ export async function buildPptx(data, outFile) {
     const rows = [];
     for (const u of st.units) for (const r of u.roles) if (!prev || r.b || (r.d ?? 0)) rows.push({ u, r });
     for (const r of st.removed || []) rows.push({ removed: r });
-    const per = 6, pages = Math.ceil(rows.length / per);
+    const TF = 13, colW = [3.0, 4.15, 3.95, 1.03];
+    const TLH = TF * 1.15 / 72, TLH9 = 9 * 1.15 / 72;
+    const rowH = ({ u, r, removed }) => {
+      const a = removed ? [removed.t, removed.note, "—"] : [r.t, (r.duty || []).join("; "), (r.skill || []).join("; ")];
+      const name = lines(a[0], colW[0] - 0.16, TF, true) * TLH + (removed ? TLH9 : lines((r.b ? BADGE_TEXT[r.b] + " · " : "") + u.title + " · 00 орон тоо", colW[0] - 0.16, 9, false) * TLH9);
+      return Math.max(name, lines(a[1], colW[1] - 0.16, TF) * TLH, lines(a[2], colW[2] - 0.16, TF) * TLH) + 0.16;
+    };
+    const AVAIL = 6.88 - 1.35 - 0.42, FOOT = 0.4;
+    const hs = rows.map(rowH), totalH = hs.reduce((a, b) => a + b, 0) + FOOT;
+    const pack = target => { const out = [[]]; let used = 0; rows.forEach((row, k) => {
+      const h = hs[k], last = k === rows.length - 1;
+      if (out.at(-1).length && (used + h + (last ? FOOT : 0) > AVAIL || used + h / 2 > target)) { out.push([]); used = 0; }
+      out.at(-1).push(row); used += h; }); return out; };
+    let chunks = pack(AVAIL);
+    if (chunks.length > 1) { const bal = pack(totalH / chunks.length); if (bal.length === chunks.length) chunks = bal; }
+    const pages = chunks.length;
     for (let p = 0; p < pages; p++) {
       s = pres.addSlide({ masterName: "CONTENT", sectionTitle: sec });
       const t = prev ? "Өөрчлөгдсөн, нэмэгдсэн албан тушаалууд" : "Албан тушаал, үүрэг, орон тоо";
       s.addText(t + (pages > 1 ? ` (${p + 1}/${pages})` : ""), { placeholder: "title" });
       const hdr = (prev ? ["Албан тушаал", "Гүйцэтгэх үүрэг", "Шаардагдах мэдлэг, ур чадвар, туршлага", "Цэвэр хэрэгцээ"] : ["Албан тушаал", "Гүйцэтгэх үүрэг", "Мэдлэг, ур чадвар, зан төлөв", "Орон тоо"])
         .map((h, k) => ({ text: h, options: { bold: true, fontSize: 11, color: C.muted, fill: { color: C.sunk }, align: k === 3 ? "right" : "left", border: [{ type: "none" }, { type: "none" }, { pt: 1, color: C.ink }, { type: "none" }] } }));
-      const body = rows.slice(p * per, (p + 1) * per).map(({ u, r, removed }) => {
+      const body = chunks[p].map(({ u, r, removed }) => {
         const b = { border: [{ type: "none" }, { type: "none" }, { pt: 0.75, color: C.line }, { type: "none" }], valign: "top" };
         if (removed) return [
           { text: [{ text: removed.t, options: { bold: true, breakLine: true } }, { text: "Хасагдсан", options: { fontSize: 9, bold: true, color: C.muted } }], options: b },
@@ -141,7 +200,7 @@ export async function buildPptx(data, outFile) {
         const ft = { fill: { color: C.sunk }, bold: true, border: [{ pt: 1, color: C.ink }, { type: "none" }, { type: "none" }, { type: "none" }] };
         tableRows.push([{ text: lbl, options: { ...ft, colspan: 3 } }, { text: val, options: { ...ft, align: "right", color: C.cherry, fontSize: 14 } }]);
       }
-      s.addTable(tableRows, { x: MX, y: 1.35, w: W - MX * 2, colW: [3.0, 4.15, 3.95, 1.03], fontFace: BODY, fontSize: 12, color: C.ink, margin: [0.07, 0.08, 0.07, 0.08], autoPage: false });
+      s.addTable(tableRows, { x: MX, y: 1.35, w: W - MX * 2, colW, fontFace: BODY, fontSize: TF, color: C.ink, margin: [0.07, 0.08, 0.07, 0.08], autoPage: false });
     }
   });
 
@@ -181,69 +240,86 @@ export async function buildPptx(data, outFile) {
 }
 
 // Compact org chart: governance chain on top, divisions as columns with their sub-units listed inside.
+// Box sizes come from the text they hold; the whole chart shrinks a step at a time until it fits the slide.
 function drawChart(pres, s, st) {
-  const X0 = MX, Y0 = 1.6, AW = W - MX * 2, AH = 5.2;
+  const X0 = MX, Y0 = 1.5, AW = W - MX * 2, AH = 6.82 - Y0;
   const units = st.units;
   const chain = units.filter(u => u.level === "chain");
   const cols = units.filter(u => u.level === "col");
   const itemsOf = id => units.filter(u => u.parent === id && u.level === "item");
   const sidesOf = id => units.filter(u => u.parent === id && u.level === "side");
+  const badgeOf = u => (u.badge ? BADGE_TEXT[u.badge] : "");
+
+  const plan = k => {
+    const f = { kick: 9 * k, title: 13.5 * k, count: 12.5 * k, item: 12 * k };
+    const PAD = 0.2 * k, cw = Math.min(4.2, 3.3 * k);
+    const nodeH = (u, w, count) => PAD + LH(f.kick) * (u.kicker ? 1 : 0) + LH(f.title) * lines(u.title, w - 0.3, f.title, true) + (count !== null || u.badge ? LH(f.count) : 0);
+    const chainH = chain.map(c => Math.max(nodeH(c, cw, displayCount(st, c)), ...sidesOf(c.id).map(sd => nodeH(sd, cw, displayCount(st, sd)))));
+    const cgap = 0.16 * k, bus = 0.5 * k;
+    const n = cols.length, gap = 0.16;
+    const colW = Math.min(3.3 * k, (AW - (n - 1) * gap) / n);
+    const headH = Math.max(...cols.map(c => nodeH(c, colW, 1)));
+    const itemRows = cols.map(c => itemsOf(c.id).map(it => {
+      const label = it.title + (it.kind === "out" ? " (гэрээт)" : "") + (it.badge && it.badge !== "out" ? "  " + BADGE_TEXT[it.badge] : "");
+      return LH(f.item) * lines(label, colW - 0.62, f.item, false) + 0.1 * k;
+    }));
+    const colH = itemRows.map(r => headH + (r.length ? r.reduce((a, b) => a + b, 0) + 0.14 : 0));
+    const total = chainH.reduce((a, b) => a + b, 0) + cgap * (chain.length - 1) + bus + Math.max(...colH);
+    return { k, f, cw, chainH, cgap, bus, n, gap, colW, headH, itemRows, colH, total };
+  };
+  let P;
+  for (let k = 1.2; k >= 0.7; k -= 0.05) { P = plan(k); if (P.total <= AH) break; }
+  const { f, cw, chainH, cgap, bus, n, gap, colW, headH, itemRows } = P;
+
   const line = (x, y, w, h, dashed) => s.addShape(pres.shapes.LINE, { x, y, w, h, line: { color: C.lineStrong, width: 1, dashType: dashed ? "dash" : "solid" } });
   const box = (x, y, w, h, u) => {
     const out = u.kind === "out";
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.12, fill: { color: FILL[u.kind] || C.paper }, line: { color: out ? C.lineStrong : (u.kind === "sub" ? C.ink : (u.kind === "support" ? C.line : FILL[u.kind])), width: out || u.kind === "sub" ? 1.25 : 0.75, dashType: out ? "dash" : "solid" }, objectName: `node-${u.id}` });
-    if (!out) s.addShape(pres.shapes.OVAL, { x: x + w - 0.2, y: y + 0.1, w: 0.08, h: 0.08, fill: { color: u.kind === "lead" ? C.cherryDark : (INK[u.kind] || C.lineStrong) }, line: { color: u.kind === "lead" ? C.cherryDark : (INK[u.kind] || C.lineStrong), width: 0 } });
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.1, fill: { color: FILL[u.kind] || C.paper }, line: { color: out ? C.lineStrong : (u.kind === "sub" ? C.ink : (u.kind === "support" ? C.lineStrong : FILL[u.kind])), width: out || u.kind === "sub" ? 1.25 : 0.75, dashType: out ? "dash" : "solid" }, objectName: `node-${u.id}` });
+    if (!out) s.addShape(pres.shapes.OVAL, { x: x + w - 0.22, y: y + 0.12, w: 0.09, h: 0.09, fill: { color: u.kind === "lead" ? C.cherryDark : (INK[u.kind] || C.lineStrong) }, line: { color: u.kind === "lead" ? C.cherryDark : (INK[u.kind] || C.lineStrong), width: 0 } });
   };
   const nodeText = (x, y, w, h, u, count) => {
     const runs = [];
-    if (u.kicker) runs.push({ text: u.kicker, options: { fontSize: 9, color: SUB[u.kind] || C.muted, breakLine: true } });
-    runs.push({ text: u.title, options: { fontSize: 13, bold: true, color: INK[u.kind] || C.ink, breakLine: count !== null || !!u.badge } });
-    if (count !== null) runs.push({ text: `${count} хүн`, options: { fontSize: 12.5, bold: true, color: INK[u.kind] || C.ink } });
-    if (u.badge) runs.push({ text: (count !== null ? "   " : "") + BADGE_TEXT[u.badge], options: { fontSize: 8.5, bold: true, color: u.badge === "new" ? C.cherry : C.muted } });
-    s.addText(runs, { isTextBox: true, x: x + 0.1, y: y + 0.08, w: w - 0.2, h: h - 0.12, margin: 0, fontFace: BODY, valign: "top" });
+    if (u.kicker) runs.push({ text: u.kicker, options: { fontSize: f.kick, color: SUB[u.kind] || C.muted, breakLine: true } });
+    runs.push({ text: u.title, options: { fontSize: f.title, bold: true, color: INK[u.kind] || C.ink, breakLine: count !== null || !!u.badge } });
+    if (count !== null) runs.push({ text: `${count} хүн`, options: { fontSize: f.count, bold: true, color: INK[u.kind] || C.ink } });
+    if (u.badge) runs.push({ text: (count !== null ? "   " : "") + badgeOf(u), options: { fontSize: f.kick, bold: true, color: u.badge === "new" ? C.cherry : C.muted } });
+    s.addText(runs, { isTextBox: true, x: x + 0.13, y: y + 0.09, w: w - 0.4, h: h - 0.14, margin: 0, fontFace: BODY, valign: "top", lineSpacingMultiple: 1.0 });
   };
 
-  const cw = 3.0, ch = chain.length > 2 ? 0.62 : 0.86, cgap = chain.length > 2 ? 0.14 : 0.2;
-  let y = Y0;
   const cx = X0 + AW / 2;
-  let prevBottom = null;
-  for (const c of chain) {
-    const x = cx - cw / 2;
+  let y = Y0, prevBottom = null;
+  chain.forEach((c, i) => {
+    const ch = chainH[i], x = cx - cw / 2;
     if (prevBottom !== null) line(cx, prevBottom, 0, y - prevBottom);
     box(x, y, cw, ch, c); nodeText(x, y, cw, ch, c, displayCount(st, c));
     for (const sd of sidesOf(c.id)) {
-      const sx = x + cw + 0.55;
-      line(x + cw, y + ch / 2, 0.55, 0);
+      const sx = x + cw + 0.5;
+      line(x + cw, y + ch / 2, 0.5, 0);
       box(sx, y, cw, ch, sd); nodeText(sx, y, cw, ch, sd, displayCount(st, sd));
     }
     prevBottom = y + ch; y += ch + cgap;
-  }
-  const colY = prevBottom + 0.45, busY = prevBottom + 0.22;
-  const n = cols.length, gap = 0.18;
-  const colW = Math.min(3.0, (AW - (n - 1) * gap) / n);
+  });
+  const busY = prevBottom + bus * 0.5, colY = prevBottom + bus;
   const startX = X0 + (AW - (n * colW + (n - 1) * gap)) / 2;
-  const maxItems = Math.max(0, ...cols.map(c => itemsOf(c.id).length));
-  const headH = 0.9;
-  const rowH = Math.min(0.42, maxItems ? (Y0 + AH - colY - headH - 0.12) / maxItems : 0.34);
   line(cx, prevBottom, 0, busY - prevBottom);
   if (n > 1) line(startX + colW / 2, busY, (n - 1) * (colW + gap), 0);
   cols.forEach((c, i) => {
     const x = startX + i * (colW + gap);
     line(x + colW / 2, busY, 0, colY - busY);
     const items = itemsOf(c.id);
-    const hgt = headH + (items.length ? items.length * rowH + 0.1 : 0);
-    box(x, colY, colW, hgt, c);
+    box(x, colY, colW, P.colH[i], c);
     nodeText(x, colY, colW, headH, c, subtreeCount(st, c.id));
-    if (items.length) {
-      s.addShape(pres.shapes.LINE, { x: x + 0.1, y: colY + headH, w: colW - 0.2, h: 0, line: { color: c.kind === "support" ? C.line : (INK[c.kind] || C.line), width: 0.5, transparency: 70 } });
-      items.forEach((it, k) => {
-        const iy = colY + headH + 0.05 + k * rowH;
-        const cnt = displayCount(st, it);
-        const label = it.title + (it.kind === "out" ? " (гэрээт)" : "");
-        s.addText([{ text: label, options: { color: it.kind === "out" ? C.muted : (INK[c.kind] || C.ink) } }, ...(it.badge && it.badge !== "out" ? [{ text: "  " + BADGE_TEXT[it.badge], options: { fontSize: 8, bold: true, color: it.badge === "new" ? C.cherry : C.muted } }] : [])],
-          { isTextBox: true, x: x + 0.1, y: iy, w: colW - 0.65, h: rowH, margin: 0, fontFace: BODY, fontSize: 12, valign: "middle", fit: "shrink" });
-        s.addText(cnt === null ? "—" : String(cnt), { isTextBox: true, x: x + colW - 0.55, y: iy, w: 0.45, h: rowH, margin: 0, fontFace: BODY, fontSize: 12, bold: true, align: "right", valign: "middle", color: INK[c.kind] || C.ink });
-      });
-    }
+    if (!items.length) return;
+    s.addShape(pres.shapes.LINE, { x: x + 0.12, y: colY + headH, w: colW - 0.24, h: 0, line: { color: c.kind === "support" ? C.line : (INK[c.kind] || C.line), width: 0.5, transparency: 70 } });
+    let iy = colY + headH + 0.07;
+    items.forEach((it, k) => {
+      const rh = itemRows[i][k];
+      const cnt = displayCount(st, it);
+      const label = it.title + (it.kind === "out" ? " (гэрээт)" : "");
+      s.addText([{ text: label, options: { color: it.kind === "out" ? C.muted : (INK[c.kind] || C.ink) } }, ...(it.badge && it.badge !== "out" ? [{ text: "  " + BADGE_TEXT[it.badge], options: { fontSize: f.kick, bold: true, color: it.badge === "new" ? C.cherry : C.muted } }] : [])],
+        { isTextBox: true, x: x + 0.13, y: iy, w: colW - 0.62, h: rh, margin: 0, fontFace: BODY, fontSize: f.item, valign: "middle", lineSpacingMultiple: 1.0 });
+      s.addText(cnt === null ? "—" : String(cnt), { isTextBox: true, x: x + colW - 0.48, y: iy, w: 0.35, h: rh, margin: 0, fontFace: BODY, fontSize: f.item, bold: true, align: "right", valign: "middle", color: INK[c.kind] || C.ink });
+      iy += rh;
+    });
   });
 }

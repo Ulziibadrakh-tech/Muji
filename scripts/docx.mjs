@@ -70,6 +70,41 @@ function rolesTable(stage, prev) {
   return new Table({ width: { size: 9206, type: WidthType.DXA }, columnWidths: W, layout: TableLayoutType.FIXED, rows });
 }
 
+const LOGO = fs.readFileSync(path.join(here, "ufe-logo.png"));
+const TNR = "Times New Roman";
+const none = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
+const tr = (text, o = {}) => new TextRun({ text, font: TNR, size: o.size || 26, bold: o.bold, italics: o.italics, underline: o.underline ? {} : undefined });
+const tp = (runs, o = {}) => new Paragraph({ alignment: o.align, spacing: { before: o.before || 0, after: o.after ?? 0, line: o.line || 276 }, children: runs });
+const tc = (children, w, o = {}) => new TableCell({ width: { size: w, type: WidthType.DXA }, borders: none, verticalAlign: o.v || "top", margins: { top: o.pad ?? 40, bottom: o.pad ?? 40, left: 0, right: 0 }, children });
+const grid = (W, rows) => new Table({ width: { size: W.reduce((a, b) => a + b, 0), type: WidthType.DXA }, columnWidths: W, layout: TableLayoutType.FIXED, borders: { ...none, insideHorizontal: noBorder, insideVertical: noBorder }, rows: rows.map(r => new TableRow({ children: r.map((c, i) => tc(c, W[i], { pad: 70 })) })) });
+
+function coverPage(m) {
+  const C3 = AlignmentType.CENTER;
+  const head = new Table({ width: { size: 9298, type: WidthType.DXA }, columnWidths: [1500, 6298, 1500], layout: TableLayoutType.FIXED, borders: { ...none, insideHorizontal: noBorder, insideVertical: noBorder }, rows: [new TableRow({ children: [
+    tc([new Paragraph({ children: [new ImageRun({ type: "png", data: LOGO, transformation: { width: 70, height: 90 }, altText: { title: "UFE", description: "Санхүү, эдийн засгийн их сургуулийн лого", name: "ufe-logo" } })] })], 1500, { v: "center" }),
+    tc([tp([tr(m.school.toUpperCase().replace(",", ""), { bold: true, underline: true, size: 26 })], { align: C3 }), tp([tr(m.program.toUpperCase(), { bold: true, size: 22 })], { align: C3 })], 6298, { v: "center" }),
+    tc([tp([tr("")])], 1500),
+  ] })] });
+  const dots = "………………………………";
+  const W = [600, 2000, 3000, 3698];
+  const sign = [["", [tr("Гүйцэтгэсэн", { size: 24 })], [tr(dots, { size: 24 })], [tr(m.authors[0] || "", { size: 24 })]],
+    ...m.authors.slice(1).map(a => ["", [tr("")], [tr("")], [tr(a, { size: 24 })]]),
+    ["", [tr("Шалгасан багш", { size: 24 })], [tr(dots, { size: 24 })], [tr(m.teacher, { size: 24 })]]];
+  return [
+    head,
+    tp([tr(m.task.replace("№ ", "").toUpperCase(), { bold: true, size: 48 })], { align: C3, before: 2600, after: 360 }),
+    grid([3400, 5898], [
+      [[tp([tr("Хичээлийн нэр:", { bold: true })])], [tp([tr(m.course, { italics: true })])]],
+      [[tp([tr("Группийн дугаар:", { bold: true })])], [tp([tr(m.group, { italics: true })])]],
+    ]),
+    tp([tr("Сэдэв", { bold: true, size: 24 }), tr(": “", { size: 24 }), tr(`${m.title}ийн ${m.topic}`.toUpperCase(), { italics: true, size: 24 }), tr("”", { size: 24 })], { before: 480 }),
+    new Paragraph({ spacing: { before: 2200 }, children: [] }),
+    grid(W, sign.map(r => r.map(c => [tp(c || [tr("")])]))),
+    tp([tr(`${m.city}. ${m.year}`, { size: 24 })], { align: C3, before: 2000 }),
+    new Paragraph({ children: [new PageBreak()] }),
+  ];
+}
+
 function kvTable(pairs, W = [2400, 6806]) {
   return new Table({ width: { size: W[0] + W[1], type: WidthType.DXA }, columnWidths: W, layout: TableLayoutType.FIXED,
     rows: pairs.map(([k, v]) => new TableRow({ children: [cell(cp(k, { bold: true }), W[0]), cell(cp(v, { color: C.ink }), W[1])] })) });
@@ -79,18 +114,8 @@ export async function buildDocx(data, outFile) {
   const m = data.meta;
   const children = [];
 
-  // cover
-  children.push(
-    P(m.school, { p: { alignment: AlignmentType.CENTER, spacing: { before: 600, after: 80 } }, r: { size: 24, bold: true } }),
-    P(`Сэдэв: ${m.topic}`, { p: { alignment: AlignmentType.CENTER, spacing: { after: 2400 } }, r: { size: 22, color: C.muted } }),
-    P(m.task.toUpperCase(), { p: { alignment: AlignmentType.CENTER, spacing: { after: 240 } }, r: { size: 22, bold: true, color: C.cherry, characterSpacing: 40 } }),
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: m.title, font: HEAD, size: 60, bold: true, color: C.ink })] }),
-    P(m.subtitle, { p: { alignment: AlignmentType.CENTER, spacing: { after: 2600 } }, r: { size: 26 } }),
-    P(m.authors.length ? `Гүйцэтгэсэн: ${m.authors.join(", ")}` : "Гүйцэтгэсэн: ………………………………………", { p: { alignment: AlignmentType.RIGHT, spacing: { after: 80 } }, r: { size: 22 } }),
-    P("Шалгасан: ………………………………………", { p: { alignment: AlignmentType.RIGHT, spacing: { after: 1600 } }, r: { size: 22 } }),
-    P(`Улаанбаатар хот, ${new Date().getFullYear()} он`, { p: { alignment: AlignmentType.CENTER } , r: { size: 22, color: C.muted } }),
-    new Paragraph({ children: [new PageBreak()] }),
-  );
+  // cover — UFE standard title page
+  children.push(...coverPage(m));
 
   // 1. case
   children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("1. Кейсийн товч")] }));
@@ -151,8 +176,8 @@ export async function buildDocx(data, outFile) {
       { reference: "concl", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1.", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 400, hanging: 300 } } } }] },
     ] },
     sections: [{
-      properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1247, bottom: 1247, left: 1361, right: 1247 } } },
-      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `${m.title} · ${m.task} · `, size: 16, color: C.muted }), new TextRun({ children: [PageNumber.CURRENT], size: 16, color: C.muted })] })] }) },
+      properties: { titlePage: true, page: { size: { width: 11906, height: 16838 }, margin: { top: 1247, bottom: 1247, left: 1361, right: 1247 } } },
+      footers: { first: new Footer({ children: [new Paragraph({ children: [] })] }), default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `${m.title} · ${m.task} · `, size: 16, color: C.muted }), new TextRun({ children: [PageNumber.CURRENT], size: 16, color: C.muted })] })] }) },
       children,
     }],
   });
